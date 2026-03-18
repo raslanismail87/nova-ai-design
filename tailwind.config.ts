@@ -57,6 +57,13 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        nova: {
+          surface1: "hsl(var(--nova-surface-1))",
+          surface2: "hsl(var(--nova-surface-2))",
+          surface3: "hsl(var(--nova-surface-3))",
+          violet: "hsl(var(--nova-violet))",
+          cyan: "hsl(var(--nova-cyan))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,25 +72,37 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "fade-in": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-in-right": {
+          from: { opacity: "0", transform: "translateX(16px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "0.4" },
+          "50%": { opacity: "1" },
+        },
+        shimmer: {
+          from: { backgroundPosition: "-200% 0" },
+          to: { backgroundPosition: "200% 0" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.4s cubic-bezier(0.2, 0, 0, 1)",
+        "slide-in-right": "slide-in-right 0.3s cubic-bezier(0.2, 0, 0, 1)",
+        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+        shimmer: "shimmer 2s linear infinite",
       },
     },
   },
