@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import EditorToolbar from "@/components/editor/EditorToolbar";
 import EditorLeftSidebar from "@/components/editor/EditorLeftSidebar";
 import EditorCanvas from "@/components/editor/EditorCanvas";
@@ -7,17 +7,134 @@ import EditorRightSidebar from "@/components/editor/EditorRightSidebar";
 import AIChatPanel from "@/components/editor/AIChatPanel";
 import AIGenerationModal from "@/components/editor/AIGenerationModal";
 import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
+import { toast } from "sonner";
+
+// Command palette item type
+interface CommandItem {
+  id: string;
+  label: string;
+  shortcut?: string;
+  action: () => void;
+  group?: string;
+}
+
+function CommandPalette({ onClose, commands }: { onClose: () => void; commands: CommandItem[] }) {
+  const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const filtered = query
+    ? commands.filter(
+        (c) =>
+          c.label.toLowerCase().includes(query.toLowerCase()) ||
+          (c.group && c.group.toLowerCase().includes(query.toLowerCase()))
+      )
+    : commands;
+
+  const grouped = filtered.reduce<Record<string, CommandItem[]>>((acc, cmd) => {
+    const g = cmd.group || "Actions";
+    if (!acc[g]) acc[g] = [];
+    acc[g].push(cmd);
+    return acc;
+  }, {});
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-[520px] rounded-2xl bg-card border border-border shadow-2xl shadow-black/60 overflow-hidden animate-fade-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+          <span className="text-muted-foreground text-sm">⌘</span>
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Type a command..."
+            className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") onClose();
+              if (e.key === "Enter" && filtered.length > 0) {
+                filtered[0].action();
+                onClose();
+              }
+            }}
+          />
+          <kbd className="px-1.5 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground">Esc</kbd>
+        </div>
+        <div className="max-h-[360px] overflow-auto py-2">
+          {Object.keys(grouped).length === 0 ? (
+            <p className="px-4 py-8 text-center text-sm text-muted-foreground">No commands found</p>
+          ) : (
+            Object.entries(grouped).map(([group, items]) => (
+              <div key={group}>
+                <p className="px-4 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{group}</p>
+                {items.map((cmd) => (
+                  <button
+                    key={cmd.id}
+                    onClick={() => { cmd.action(); onClose(); }}
+                    className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
+                  >
+                    <span>{cmd.label}</span>
+                    {cmd.shortcut && (
+                      <kbd className="px-1.5 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground font-mono">
+                        {cmd.shortcut}
+                      </kbd>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const EditorInner = () => {
   const [showAI, setShowAI] = useState(false);
   const [rightTab, setRightTab] = useState<"design" | "prototype" | "inspect">("design");
   const [showGenModal, setShowGenModal] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const projectName = searchParams.get("name") || "Fintech Mobile App";
   const pageName = searchParams.get("page") || "Landing Page";
 
-  const { dispatch, deleteSelected, undo, redo } = useCanvas();
+  const { dispatch, deleteSelected, undo, redo, copySelected, paste, duplicateSelected, state } = useCanvas();
+
+  const commands: CommandItem[] = [
+    { id: "undo", label: "Undo", shortcut: "⌘Z", group: "Edit", action: undo },
+    { id: "redo", label: "Redo", shortcut: "⌘⇧Z", group: "Edit", action: redo },
+    { id: "copy", label: "Copy", shortcut: "⌘C", group: "Edit", action: copySelected },
+    { id: "paste", label: "Paste", shortcut: "⌘V", group: "Edit", action: paste },
+    { id: "duplicate", label: "Duplicate", shortcut: "⌘D", group: "Edit", action: duplicateSelected },
+    { id: "delete", label: "Delete Selection", shortcut: "⌫", group: "Edit", action: deleteSelected },
+    { id: "select-all", label: "Select All", shortcut: "⌘A", group: "Edit", action: () => dispatch({ type: "SELECT", ids: state.elements.map(e => e.id) }) },
+    { id: "toggle-ai", label: "Toggle AI Panel", shortcut: "⌘I", group: "View", action: () => setShowAI(p => !p) },
+    { id: "toggle-grid", label: "Toggle Grid", shortcut: "⌘'", group: "View", action: () => dispatch({ type: "TOGGLE_GRID" }) },
+    { id: "zoom-100", label: "Zoom to 100%", shortcut: "⌘0", group: "View", action: () => dispatch({ type: "SET_ZOOM", zoom: 100 }) },
+    { id: "zoom-50", label: "Zoom to 50%", group: "View", action: () => dispatch({ type: "SET_ZOOM", zoom: 50 }) },
+    { id: "zoom-200", label: "Zoom to 200%", group: "View", action: () => dispatch({ type: "SET_ZOOM", zoom: 200 }) },
+    { id: "tool-move", label: "Move Tool", shortcut: "V", group: "Tools", action: () => dispatch({ type: "SET_TOOL", tool: "move" }) },
+    { id: "tool-rect", label: "Rectangle Tool", shortcut: "R", group: "Tools", action: () => dispatch({ type: "SET_TOOL", tool: "rectangle" }) },
+    { id: "tool-ellipse", label: "Ellipse Tool", shortcut: "O", group: "Tools", action: () => dispatch({ type: "SET_TOOL", tool: "ellipse" }) },
+    { id: "tool-text", label: "Text Tool", shortcut: "T", group: "Tools", action: () => dispatch({ type: "SET_TOOL", tool: "text" }) },
+    { id: "tool-frame", label: "Frame Tool", shortcut: "F", group: "Tools", action: () => dispatch({ type: "SET_TOOL", tool: "frame" }) },
+    { id: "tool-line", label: "Line Tool", shortcut: "L", group: "Tools", action: () => dispatch({ type: "SET_TOOL", tool: "line" }) },
+    { id: "size-desktop", label: "Resize to Desktop (1280×900)", group: "Canvas", action: () => { dispatch({ type: "SET_ARTBOARD_SIZE", width: 1280, height: 900 }); toast.success("Canvas resized to 1280×900"); } },
+    { id: "size-mobile", label: "Resize to Mobile (390×844)", group: "Canvas", action: () => { dispatch({ type: "SET_ARTBOARD_SIZE", width: 390, height: 844 }); toast.success("Canvas resized to 390×844"); } },
+    { id: "size-tablet", label: "Resize to Tablet (768×1024)", group: "Canvas", action: () => { dispatch({ type: "SET_ARTBOARD_SIZE", width: 768, height: 1024 }); toast.success("Canvas resized to 768×1024"); } },
+    { id: "dashboard", label: "Back to Dashboard", group: "Navigate", action: () => navigate("/dashboard") },
+  ];
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -25,7 +142,7 @@ const EditorInner = () => {
       const tag = (e.target as HTMLElement).tagName.toLowerCase();
       const isInput = tag === "input" || tag === "textarea" || tag === "select";
 
-      // Tool shortcuts (only when not typing in inputs)
+      // Tool shortcuts
       if (!isInput && !e.metaKey && !e.ctrlKey) {
         const toolMap: Record<string, string> = {
           v: "move", f: "frame", r: "rectangle", o: "ellipse",
@@ -36,42 +153,85 @@ const EditorInner = () => {
           return;
         }
 
-        // Delete / Backspace
         if ((e.key === "Delete" || e.key === "Backspace") && !isInput) {
           deleteSelected();
           return;
         }
 
-        // Escape → move tool, clear selection
         if (e.key === "Escape") {
           dispatch({ type: "SET_TOOL", tool: "move" });
           dispatch({ type: "SELECT", ids: [] });
+          setShowCommandPalette(false);
           return;
         }
       }
 
-      // Cmd/Ctrl + shortcuts
       if (e.metaKey || e.ctrlKey) {
-        if (e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
-        if (e.key === "z" && e.shiftKey) { e.preventDefault(); redo(); return; }
-        if (e.key === "y") { e.preventDefault(); redo(); return; }
-        if (e.key === "i") { e.preventDefault(); setShowAI((p) => !p); return; }
-        // Zoom
-        if (e.key === "=" || e.key === "+") { e.preventDefault(); dispatch({ type: "SET_ZOOM", zoom: 0 }); }
-        if (e.key === "-") { e.preventDefault(); dispatch({ type: "SET_ZOOM", zoom: 0 }); }
-        if (e.key === "0") { e.preventDefault(); dispatch({ type: "SET_ZOOM", zoom: 100 }); }
+        switch (e.key.toLowerCase()) {
+          case "z":
+            e.preventDefault();
+            if (e.shiftKey) redo(); else undo();
+            return;
+          case "y":
+            e.preventDefault();
+            redo();
+            return;
+          case "i":
+            e.preventDefault();
+            setShowAI((p) => !p);
+            return;
+          case "k":
+            e.preventDefault();
+            setShowCommandPalette((p) => !p);
+            return;
+          case "c":
+            if (!isInput) { e.preventDefault(); copySelected(); toast.success("Copied to clipboard"); }
+            return;
+          case "v":
+            if (!isInput) { e.preventDefault(); paste(); }
+            return;
+          case "d":
+            e.preventDefault();
+            duplicateSelected();
+            return;
+          case "a":
+            if (!isInput) {
+              e.preventDefault();
+              dispatch({ type: "SELECT", ids: state.elements.map(e => e.id) });
+            }
+            return;
+          case "'":
+            e.preventDefault();
+            dispatch({ type: "TOGGLE_GRID" });
+            return;
+          case "=":
+          case "+":
+            e.preventDefault();
+            dispatch({ type: "SET_ZOOM", zoom: state.zoom + 10 });
+            return;
+          case "-":
+            e.preventDefault();
+            dispatch({ type: "SET_ZOOM", zoom: state.zoom - 10 });
+            return;
+          case "0":
+            e.preventDefault();
+            dispatch({ type: "SET_ZOOM", zoom: 100 });
+            return;
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [dispatch, deleteSelected, undo, redo]);
+  }, [dispatch, deleteSelected, undo, redo, copySelected, paste, duplicateSelected, state.elements, state.zoom]);
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       <EditorToolbar
         showAI={showAI}
         onToggleAI={() => setShowAI(!showAI)}
+        onOpenCommandPalette={() => setShowCommandPalette(true)}
+        onOpenGenModal={() => setShowGenModal(true)}
         projectName={projectName}
         pageName={pageName}
       />
@@ -92,14 +252,25 @@ const EditorInner = () => {
         onClose={() => setShowGenModal(false)}
         onGenerate={() => setShowGenModal(false)}
       />
+      {showCommandPalette && (
+        <CommandPalette
+          commands={commands}
+          onClose={() => setShowCommandPalette(false)}
+        />
+      )}
     </div>
   );
 };
 
-const Editor = () => (
-  <CanvasProvider>
-    <EditorInner />
-  </CanvasProvider>
-);
+const Editor = () => {
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("id") || searchParams.get("name") || "default";
+
+  return (
+    <CanvasProvider projectKey={projectId}>
+      <EditorInner />
+    </CanvasProvider>
+  );
+};
 
 export default Editor;

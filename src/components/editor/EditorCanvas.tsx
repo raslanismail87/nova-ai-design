@@ -13,7 +13,23 @@ type DragState =
   | { kind: "none" }
   | { kind: "drawing"; startX: number; startY: number; currentX: number; currentY: number }
   | { kind: "moving"; startX: number; startY: number; origPositions: Record<string, { x: number; y: number }> }
-  | { kind: "resizing"; handle: string; startX: number; startY: number; origEl: CanvasElement };
+  | { kind: "resizing"; handle: string; startX: number; startY: number; origEl: CanvasElement }
+  | { kind: "panning"; startScrollLeft: number; startScrollTop: number; startClientX: number; startClientY: number }
+  | { kind: "selecting"; startX: number; startY: number; currentX: number; currentY: number };
+
+const SNAP = 8; // snap grid size
+
+function snapToGrid(val: number): number {
+  return Math.round(val / SNAP) * SNAP;
+}
+
+// Parse SVG filter ID for shadow/blur
+function getFilterId(el: CanvasElement): string | null {
+  const hasShadow = el.shadowColor && (el.shadowX !== 0 || el.shadowY !== 0 || el.shadowBlur !== 0);
+  const hasBlur = el.blur && el.blur > 0;
+  if (hasShadow || hasBlur) return `filter-${el.id}`;
+  return null;
+}
 
 // Render a single canvas element as SVG
 const SvgElement = ({
@@ -35,6 +51,7 @@ const SvgElement = ({
 
   const isGradient = el.fill.startsWith("linear-gradient");
   const gradId = `grad-${el.id}`;
+  const filterId = getFilterId(el);
 
   // Parse linear-gradient to get colors
   let fillRef = el.fill;
@@ -51,11 +68,36 @@ const SvgElement = ({
     fillRef = `url(#${gradId})`;
   }
 
+  // Build SVG filter for shadow/blur
+  let filterDef: React.ReactNode = null;
+  if (filterId) {
+    const hasShadow = el.shadowColor && (el.shadowX !== undefined || el.shadowY !== undefined || el.shadowBlur !== undefined);
+    const hasBlur = el.blur && el.blur > 0;
+    filterDef = (
+      <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
+        {hasBlur && <feGaussianBlur stdDeviation={el.blur} />}
+        {hasShadow && (
+          <>
+            <feFlood floodColor={el.shadowColor || "rgba(0,0,0,0.5)"} result="flood" />
+            <feComposite in="flood" in2="SourceAlpha" operator="in" result="shadow" />
+            <feOffset dx={el.shadowX || 0} dy={el.shadowY || 4} result="offsetShadow" />
+            <feGaussianBlur in="offsetShadow" stdDeviation={el.shadowBlur || 8} result="blurredShadow" />
+            <feMerge>
+              <feMergeNode in="blurredShadow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </>
+        )}
+      </filter>
+    );
+  }
+
   const commonProps = {
     fill: fillRef,
     stroke: el.stroke || "none",
     strokeWidth: el.strokeWidth,
     opacity: el.opacity,
+    filter: filterId ? `url(#${filterId})` : undefined,
     style: { cursor: el.locked ? "default" : "move" },
     onPointerDown: (e: React.PointerEvent) => !el.locked && onPointerDown(e, el.id),
     onDoubleClick: (e: React.MouseEvent) => onDoubleClick(e, el.id),
@@ -67,7 +109,10 @@ const SvgElement = ({
 
   return (
     <g transform={transform}>
-      {gradDef && <defs>{gradDef}</defs>}
+      <defs>
+        {gradDef}
+        {filterDef}
+      </defs>
       {el.type === "rectangle" || el.type === "frame" || el.type === "image" ? (
         <rect
           x={el.x}
@@ -101,7 +146,7 @@ const SvgElement = ({
         />
       ) : el.type === "text" ? (
         editingTextId === el.id ? (
-          <foreignObject x={el.x} y={el.y} width={el.width} height={el.height}>
+          <foreignObject x={el.x} y={el.y} width={el.width} height={Math.max(el.height, 40)}>
             <textarea
               style={{
                 width: "100%",
@@ -126,7 +171,7 @@ const SvgElement = ({
           </foreignObject>
         ) : (
           <text
-            x={el.x}
+            x={el.textAlign === "center" ? el.x + el.width / 2 : el.textAlign === "right" ? el.x + el.width : el.x}
             y={el.y}
             fill={fillRef}
             fontSize={el.fontSize || 16}
@@ -232,7 +277,7 @@ const SelectionHandles = ({
   );
 };
 
-const ARTBOARD_PADDING = 80; // padding around artboard
+const ARTBOARD_PADDING = 80;
 
 const EditorCanvas = ({ onOpenAI }: Props) => {
   const { state, dispatch, addElement, updateElement, selectById, clearSelection, deleteSelected, selectedElements } = useCanvas();
@@ -240,6 +285,8 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const spaceDownRef = useRef(false);
 
   const [dragState, setDragState] = useState<DragState>({ kind: "none" });
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; name: string } | null>(null);
@@ -247,15 +294,11 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
 
   const scale = zoom / 100;
 
-  // SVG viewport dimensions (larger than artboard)
   const svgWidth = artboardWidth + ARTBOARD_PADDING * 2;
   const svgHeight = artboardHeight + ARTBOARD_PADDING * 2;
-
-  // Artboard position in SVG
   const artX = ARTBOARD_PADDING;
   const artY = ARTBOARD_PADDING;
 
-  // Convert screen coords to SVG artboard coords
   const screenToArtboard = useCallback((clientX: number, clientY: number): { x: number; y: number } => {
     if (!svgRef.current) return { x: 0, y: 0 };
     const rect = svgRef.current.getBoundingClientRect();
@@ -264,24 +307,84 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
     return { x: svgX - artX, y: svgY - artY };
   }, [scale, artX, artY]);
 
+  // Wheel zoom
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = -e.deltaY * 0.5;
+      dispatch({ type: "SET_ZOOM", zoom: state.zoom + delta });
+    }
+  }, [state.zoom, dispatch]);
+
+  useEffect(() => {
+    const el = scrollAreaRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
+
+  // Space key for panning mode
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !spaceDownRef.current) {
+        const tag = (e.target as HTMLElement).tagName.toLowerCase();
+        if (tag !== "input" && tag !== "textarea") {
+          spaceDownRef.current = true;
+          if (containerRef.current) containerRef.current.style.cursor = "grab";
+        }
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        spaceDownRef.current = false;
+        if (containerRef.current) containerRef.current.style.cursor = "";
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, []);
+
   const handleCanvasPointerDown = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
     if (e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
 
+    // Space + drag = pan
+    if (spaceDownRef.current || activeTool === "hand") {
+      const scrollEl = scrollAreaRef.current;
+      if (scrollEl) {
+        setDragState({
+          kind: "panning",
+          startScrollLeft: scrollEl.scrollLeft,
+          startScrollTop: scrollEl.scrollTop,
+          startClientX: e.clientX,
+          startClientY: e.clientY,
+        });
+        if (containerRef.current) containerRef.current.style.cursor = "grabbing";
+      }
+      return;
+    }
+
     const { x, y } = screenToArtboard(e.clientX, e.clientY);
 
-    if (activeTool === "move" || activeTool === "hand") {
+    if (activeTool === "move") {
       clearSelection();
+      // Start rubber-band selection
+      setDragState({ kind: "selecting", startX: x, startY: y, currentX: x, currentY: y });
       return;
     }
 
     if (["rectangle", "ellipse", "frame", "line", "image"].includes(activeTool)) {
       setDragState({ kind: "drawing", startX: x, startY: y, currentX: x, currentY: y });
     } else if (activeTool === "text") {
-      // Place text at click position
+      const snappedX = snapToGrid(x);
+      const snappedY = snapToGrid(y);
       addElement({
         type: "text",
-        x, y, width: 200, height: 40,
+        x: snappedX, y: snappedY, width: 200, height: 40,
         rotation: 0, fill: "#F2F2F2", stroke: "", strokeWidth: 0,
         opacity: 1, cornerRadius: 0, name: "Text",
         textContent: "Double click to edit",
@@ -297,9 +400,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
     e.stopPropagation();
     if (activeTool !== "move") return;
 
-    if (editingTextId) {
-      setEditingTextId(null);
-    }
+    if (editingTextId) setEditingTextId(null);
 
     selectById(id, e.shiftKey || e.metaKey || e.ctrlKey);
 
@@ -331,17 +432,33 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
 
   const handlePointerMove = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
     if (dragState.kind === "none") return;
+
+    if (dragState.kind === "panning") {
+      const dx = e.clientX - dragState.startClientX;
+      const dy = e.clientY - dragState.startClientY;
+      const scrollEl = scrollAreaRef.current;
+      if (scrollEl) {
+        scrollEl.scrollLeft = dragState.startScrollLeft - dx;
+        scrollEl.scrollTop = dragState.startScrollTop - dy;
+      }
+      return;
+    }
+
     const { x: cx, y: cy } = screenToArtboard(e.clientX, e.clientY);
 
     if (dragState.kind === "drawing") {
       setDragState((prev) => prev.kind === "drawing" ? { ...prev, currentX: cx, currentY: cy } : prev);
+    } else if (dragState.kind === "selecting") {
+      setDragState((prev) => prev.kind === "selecting" ? { ...prev, currentX: cx, currentY: cy } : prev);
     } else if (dragState.kind === "moving") {
       const dx = cx - dragState.startX;
       const dy = cy - dragState.startY;
       Object.entries(dragState.origPositions).forEach(([id, orig]) => {
         const el = elements.find((e) => e.id === id);
         if (el && !el.locked) {
-          updateElement(id, { x: orig.x + dx, y: orig.y + dy });
+          const newX = snapToGrid(orig.x + dx);
+          const newY = snapToGrid(orig.y + dy);
+          updateElement(id, { x: newX, y: newY });
         }
       });
     } else if (dragState.kind === "resizing") {
@@ -350,10 +467,10 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
       const dy = cy - startY;
       let { x, y, width, height } = origEl;
 
-      if (handle.includes("e")) width = Math.max(10, origEl.width + dx);
-      if (handle.includes("s")) height = Math.max(10, origEl.height + dy);
-      if (handle.includes("w")) { x = origEl.x + dx; width = Math.max(10, origEl.width - dx); }
-      if (handle.includes("n")) { y = origEl.y + dy; height = Math.max(10, origEl.height - dy); }
+      if (handle.includes("e")) width = Math.max(10, snapToGrid(origEl.width + dx));
+      if (handle.includes("s")) height = Math.max(10, snapToGrid(origEl.height + dy));
+      if (handle.includes("w")) { x = snapToGrid(origEl.x + dx); width = Math.max(10, snapToGrid(origEl.width - dx)); }
+      if (handle.includes("n")) { y = snapToGrid(origEl.y + dy); height = Math.max(10, snapToGrid(origEl.height - dy)); }
 
       updateElement(origEl.id, { x, y, width, height });
     }
@@ -362,10 +479,10 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
   const handlePointerUp = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
     if (dragState.kind === "drawing") {
       const { startX, startY, currentX, currentY } = dragState;
-      const x = Math.min(startX, currentX);
-      const y = Math.min(startY, currentY);
-      const w = Math.abs(currentX - startX);
-      const h = Math.abs(currentY - startY);
+      const x = snapToGrid(Math.min(startX, currentX));
+      const y = snapToGrid(Math.min(startY, currentY));
+      const w = snapToGrid(Math.abs(currentX - startX));
+      const h = snapToGrid(Math.abs(currentY - startY));
 
       if (w > 5 && h > 5) {
         const typeMap: Record<string, string> = {
@@ -385,9 +502,29 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         });
         dispatch({ type: "SET_TOOL", tool: "move" });
       }
+    } else if (dragState.kind === "selecting") {
+      // Rubber-band: select all elements within selection rect
+      const { startX, startY, currentX, currentY } = dragState;
+      const selX = Math.min(startX, currentX);
+      const selY = Math.min(startY, currentY);
+      const selW = Math.abs(currentX - startX);
+      const selH = Math.abs(currentY - startY);
+
+      if (selW > 4 && selH > 4) {
+        const inBox = elements.filter((el) => {
+          if (!el.visible || el.locked) return false;
+          return el.x < selX + selW && el.x + el.width > selX &&
+            el.y < selY + selH && el.y + el.height > selY;
+        });
+        if (inBox.length > 0) {
+          dispatch({ type: "SELECT", ids: inBox.map(e => e.id) });
+        }
+      }
+    } else if (dragState.kind === "panning") {
+      if (containerRef.current) containerRef.current.style.cursor = spaceDownRef.current ? "grab" : "";
     }
     setDragState({ kind: "none" });
-  }, [dragState, activeTool, addElement, dispatch]);
+  }, [dragState, activeTool, addElement, dispatch, elements]);
 
   const handleElementDoubleClick = useCallback((e: React.MouseEvent, id: string) => {
     const el = elements.find((el) => el.id === id);
@@ -410,7 +547,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
     }
   }, [selectedIds, elements]);
 
-  // Drawing preview shape
+  // Drawing / rubber-band preview
   const drawingPreview = (() => {
     if (dragState.kind !== "drawing") return null;
     const { startX, startY, currentX, currentY } = dragState;
@@ -430,7 +567,26 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
     return <rect x={x} y={y} width={w} height={h} rx={8} {...style} />;
   })();
 
-  // Cursor based on tool
+  const rubberBandPreview = (() => {
+    if (dragState.kind !== "selecting") return null;
+    const { startX, startY, currentX, currentY } = dragState;
+    const x = Math.min(startX, currentX);
+    const y = Math.min(startY, currentY);
+    const w = Math.abs(currentX - startX);
+    const h = Math.abs(currentY - startY);
+    if (w < 2 && h < 2) return null;
+    return (
+      <rect
+        x={x} y={y} width={w} height={h}
+        fill="rgba(139,92,246,0.06)"
+        stroke="#8B5CF6"
+        strokeWidth={1}
+        strokeDasharray="3 2"
+        style={{ pointerEvents: "none" }}
+      />
+    );
+  })();
+
   const cursorMap: Record<string, string> = {
     move: "default",
     hand: "grab",
@@ -444,6 +600,9 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
     comment: "default",
   };
 
+  // Zoom presets
+  const zoomPresets = [25, 50, 75, 100, 150, 200];
+
   return (
     <div
       ref={containerRef}
@@ -453,7 +612,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
       {/* Dot grid background */}
       <div className="absolute inset-0 nova-dot-grid pointer-events-none" />
 
-      {/* Rulers */}
+      {/* Ruler (horizontal) */}
       <div className="absolute top-0 left-8 right-0 h-6 bg-card/80 backdrop-blur-sm border-b border-border flex items-end px-2 z-10 pointer-events-none">
         {Array.from({ length: 20 }).map((_, i) => (
           <div key={i} className="flex-1 border-l border-border/20 relative">
@@ -465,6 +624,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
           </div>
         ))}
       </div>
+      {/* Ruler (vertical) */}
       <div className="absolute top-6 left-0 bottom-0 w-8 bg-card/80 backdrop-blur-sm border-r border-border z-10 pointer-events-none">
         {Array.from({ length: 15 }).map((_, i) => (
           <div key={i} className="h-16 border-t border-border/20 relative">
@@ -478,7 +638,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
       </div>
 
       {/* Canvas scroll area */}
-      <div className="absolute inset-0 top-6 left-8 overflow-auto">
+      <div ref={scrollAreaRef} className="absolute inset-0 top-6 left-8 overflow-auto">
         <div
           style={{
             width: svgWidth * scale,
@@ -495,7 +655,10 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
             width={svgWidth * scale}
             height={svgHeight * scale}
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-            style={{ cursor: cursorMap[activeTool] || "default", display: "block" }}
+            style={{
+              cursor: dragState.kind === "panning" ? "grabbing" : spaceDownRef.current ? "grab" : cursorMap[activeTool] || "default",
+              display: "block",
+            }}
             onPointerDown={handleCanvasPointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
@@ -528,7 +691,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
               width={artboardWidth}
               height={artboardHeight}
               fill="#0a0a0f"
-              rx={12}
+              rx={4}
               filter="url(#artboard-shadow)"
             />
 
@@ -559,12 +722,11 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
             {/* Clip artboard content */}
             <defs>
               <clipPath id="artboard-clip">
-                <rect x={artX} y={artY} width={artboardWidth} height={artboardHeight} rx={12} />
+                <rect x={artX} y={artY} width={artboardWidth} height={artboardHeight} rx={4} />
               </clipPath>
             </defs>
 
             <g clipPath="url(#artboard-clip)">
-              {/* Translate elements from artboard-space to SVG-space */}
               <g transform={`translate(${artX}, ${artY})`}>
                 {elements.map((el) => (
                   <SvgElement
@@ -580,6 +742,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
 
                 {/* Drawing preview */}
                 {drawingPreview}
+                {rubberBandPreview}
 
                 {/* Selection handles */}
                 {selectedElements.map((el) => (
@@ -627,7 +790,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
               fill="none"
               stroke="rgba(255,255,255,0.08)"
               strokeWidth={1}
-              rx={12}
+              rx={4}
               style={{ pointerEvents: "none" }}
             />
           </svg>
@@ -653,22 +816,33 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         <button
           onClick={() => dispatch({ type: "SET_ZOOM", zoom: state.zoom - 10 })}
           className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+          title="Zoom out (Ctrl −)"
         >
           <ZoomOut className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
-        <span className="text-[10px] font-mono text-muted-foreground px-2 min-w-[3rem] text-center">
-          {zoom}%
-        </span>
+        <select
+          value={zoom}
+          onChange={(e) => dispatch({ type: "SET_ZOOM", zoom: Number(e.target.value) })}
+          className="text-[10px] font-mono text-muted-foreground bg-transparent outline-none cursor-pointer min-w-[3.5rem] text-center"
+          title="Zoom level"
+        >
+          {zoomPresets.map((z) => (
+            <option key={z} value={z}>{z}%</option>
+          ))}
+          {!zoomPresets.includes(zoom) && <option value={zoom}>{zoom}%</option>}
+        </select>
         <button
           onClick={() => dispatch({ type: "SET_ZOOM", zoom: state.zoom + 10 })}
           className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+          title="Zoom in (Ctrl +)"
         >
           <ZoomIn className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
         <div className="w-px h-4 bg-border mx-0.5" />
         <button
-          onClick={() => dispatch({ type: "SET_ZOOM", zoom: 70 })}
+          onClick={() => dispatch({ type: "SET_ZOOM", zoom: 100 })}
           className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+          title="Fit to screen"
         >
           <Maximize className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
@@ -676,7 +850,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         <button
           onClick={() => dispatch({ type: "TOGGLE_GRID" })}
           className={`p-1.5 rounded-lg transition-colors ${showGrid ? "text-primary bg-primary/10" : "text-muted-foreground hover:bg-secondary/50"}`}
-          title="Toggle grid"
+          title="Toggle grid (⌘')"
         >
           <Grid3X3 className="w-3.5 h-3.5" />
         </button>
@@ -689,6 +863,19 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
           {activeTool === "text" ? "Click to place text" : `Click and drag to draw ${activeTool}`}
           <span className="ml-1 px-1.5 py-0.5 rounded bg-secondary text-[10px]">Esc</span>
           to cancel
+        </div>
+      )}
+
+      {/* Selection info */}
+      {selectedElements.length > 0 && (
+        <div className="absolute bottom-4 left-8 flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-card/90 border border-border text-[10px] text-muted-foreground z-20 pointer-events-none">
+          <span className="text-primary font-medium">{selectedElements.length}</span>
+          {selectedElements.length === 1 ? "element" : "elements"} selected
+          {selectedElements.length === 1 && (
+            <span className="text-muted-foreground/60">
+              · {Math.round(selectedElements[0].width)} × {Math.round(selectedElements[0].height)}
+            </span>
+          )}
         </div>
       )}
     </div>

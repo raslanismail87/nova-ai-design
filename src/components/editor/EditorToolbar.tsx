@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Sparkles, Undo2, Redo2, Share2, Play, Search,
   MousePointer2, Frame, Square, Circle, Minus, PenTool, Type, Image, MessageSquare, Hand,
-  ChevronDown,
+  ChevronDown, Monitor, Smartphone, Tablet, Command,
 } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
+import { toast } from "sonner";
 
 const toolIcons: Record<string, any> = {
   move: MousePointer2, frame: Frame, rectangle: Square, ellipse: Circle,
@@ -20,24 +22,48 @@ const tools = [
   { id: "comment", shortcut: "C" }, { id: "hand", shortcut: "H" },
 ];
 
+const artboardPresets = [
+  { label: "Desktop", icon: Monitor, width: 1280, height: 900 },
+  { label: "Mobile", icon: Smartphone, width: 390, height: 844 },
+  { label: "Tablet", icon: Tablet, width: 768, height: 1024 },
+  { label: "HD", icon: Monitor, width: 1920, height: 1080 },
+  { label: "4K", icon: Monitor, width: 3840, height: 2160 },
+];
+
 interface Props {
   showAI: boolean;
   onToggleAI: () => void;
+  onOpenCommandPalette?: () => void;
+  onOpenGenModal?: () => void;
   projectName?: string;
   pageName?: string;
 }
 
-export default function EditorToolbar({ showAI, onToggleAI, projectName = "Fintech Mobile App", pageName = "Landing Page" }: Props) {
+export default function EditorToolbar({
+  showAI,
+  onToggleAI,
+  onOpenCommandPalette,
+  onOpenGenModal,
+  projectName = "Fintech Mobile App",
+  pageName = "Landing Page",
+}: Props) {
   const navigate = useNavigate();
   const { state, dispatch, undo, redo, canUndo, canRedo } = useCanvas();
-  const { activeTool, zoom } = state;
+  const { activeTool, zoom, artboardWidth, artboardHeight } = state;
+  const [showPresets, setShowPresets] = useState(false);
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success("Link copied to clipboard");
+  };
 
   return (
-    <div className="h-12 border-b border-border bg-card/80 backdrop-blur-sm flex items-center px-3 gap-2 shrink-0 z-30">
+    <div className="h-12 border-b border-border bg-card/80 backdrop-blur-sm flex items-center px-3 gap-2 shrink-0 z-30 relative">
       {/* Left: Logo + project name */}
       <button
         onClick={() => navigate("/dashboard")}
         className="flex items-center gap-2 mr-2 hover:opacity-80 transition-opacity"
+        title="Back to Dashboard"
       >
         <div className="w-6 h-6 rounded-md nova-gradient flex items-center justify-center">
           <Sparkles className="w-3 h-3 text-primary-foreground" />
@@ -49,10 +75,47 @@ export default function EditorToolbar({ showAI, onToggleAI, projectName = "Finte
         <ChevronDown className="w-3 h-3 text-muted-foreground ml-0.5" />
       </button>
       <span className="text-xs text-muted-foreground">/</span>
-      <button className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-        {pageName}
-        <ChevronDown className="w-3 h-3" />
-      </button>
+      <div className="relative">
+        <button
+          onClick={() => setShowPresets(!showPresets)}
+          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 group"
+          title="Change canvas size"
+        >
+          {pageName}
+          <span className="text-[9px] text-muted-foreground/50 font-mono ml-1">{artboardWidth}×{artboardHeight}</span>
+          <ChevronDown className="w-3 h-3" />
+        </button>
+        {showPresets && (
+          <div
+            className="absolute top-full left-0 mt-1 z-50 rounded-xl bg-card border border-border shadow-xl shadow-black/40 py-1 w-48 animate-fade-in"
+            onMouseLeave={() => setShowPresets(false)}
+          >
+            <p className="px-3 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Canvas Size</p>
+            {artboardPresets.map((preset) => {
+              const Icon = preset.icon;
+              return (
+                <button
+                  key={preset.label}
+                  onClick={() => {
+                    dispatch({ type: "SET_ARTBOARD_SIZE", width: preset.width, height: preset.height });
+                    toast.success(`Canvas resized to ${preset.width}×${preset.height}`);
+                    setShowPresets(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs transition-colors ${
+                    artboardWidth === preset.width && artboardHeight === preset.height
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span className="flex-1 text-left">{preset.label}</span>
+                  <span className="text-[10px] font-mono text-muted-foreground/50">{preset.width}×{preset.height}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Undo/Redo */}
       <div className="flex items-center gap-0.5 ml-2">
@@ -112,18 +175,21 @@ export default function EditorToolbar({ showAI, onToggleAI, projectName = "Finte
           <button
             onClick={() => dispatch({ type: "SET_ZOOM", zoom: zoom - 10 })}
             className="h-7 px-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+            title="Zoom out"
           >
             −
           </button>
           <button
             onClick={() => dispatch({ type: "SET_ZOOM", zoom: 100 })}
             className="text-xs text-muted-foreground font-mono hover:text-foreground min-w-[3.5rem] text-center"
+            title="Reset zoom"
           >
             {zoom}%
           </button>
           <button
             onClick={() => dispatch({ type: "SET_ZOOM", zoom: zoom + 10 })}
             className="h-7 px-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+            title="Zoom in"
           >
             +
           </button>
@@ -131,8 +197,16 @@ export default function EditorToolbar({ showAI, onToggleAI, projectName = "Finte
 
         <div className="w-px h-5 bg-border mx-0.5" />
 
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Search className="w-3.5 h-3.5" />
+        {/* Command Palette */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 gap-1.5 text-muted-foreground hover:text-foreground"
+          onClick={onOpenCommandPalette}
+          title="Command Palette (⌘K)"
+        >
+          <Command className="w-3.5 h-3.5" />
+          <kbd className="hidden sm:inline-block px-1 py-0.5 rounded bg-secondary text-[9px] text-muted-foreground">⌘K</kbd>
         </Button>
 
         <Button
@@ -154,20 +228,25 @@ export default function EditorToolbar({ showAI, onToggleAI, projectName = "Finte
             <div
               key={i}
               className="w-6 h-6 rounded-full bg-secondary border-2 border-card flex items-center justify-center text-[9px] font-medium"
+              title={`Collaborator ${letter}`}
             >
               {letter}
             </div>
           ))}
-          <div className="w-6 h-6 rounded-full bg-green-500/20 border-2 border-card flex items-center justify-center">
+          <div className="w-6 h-6 rounded-full bg-green-500/20 border-2 border-card flex items-center justify-center" title="You (active)">
             <div className="w-2 h-2 rounded-full bg-green-500" />
           </div>
         </div>
 
-        <Button variant="outline" size="sm" className="h-8 border-border">
+        <Button variant="outline" size="sm" className="h-8 border-border" onClick={handleShare}>
           <Share2 className="w-3.5 h-3.5 mr-1" />
           Share
         </Button>
-        <Button size="sm" className="h-8 nova-gradient border-0 text-primary-foreground hover:opacity-90">
+        <Button
+          size="sm"
+          className="h-8 nova-gradient border-0 text-primary-foreground hover:opacity-90"
+          title="Present / Preview"
+        >
           <Play className="w-3.5 h-3.5 mr-1" />
           Present
         </Button>

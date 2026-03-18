@@ -1,19 +1,14 @@
 import { useState, useCallback } from "react";
-import { ChevronDown, Plus, Trash2, Copy } from "lucide-react";
+import { ChevronDown, Plus, Trash2, Copy, Download, Link2, Zap } from "lucide-react";
 import { useCanvas, CanvasElement } from "@/contexts/CanvasContext";
+import { toast } from "sonner";
 
 // --- Utility Components ---
 
 const SectionHeader = ({
-  title,
-  open,
-  onToggle,
-  extra,
+  title, open, onToggle, extra,
 }: {
-  title: string;
-  open: boolean;
-  onToggle: () => void;
-  extra?: React.ReactNode;
+  title: string; open: boolean; onToggle: () => void; extra?: React.ReactNode;
 }) => (
   <button
     className="w-full flex items-center justify-between py-2 text-xs font-medium text-foreground"
@@ -22,31 +17,16 @@ const SectionHeader = ({
     {title}
     <div className="flex items-center gap-1">
       {extra}
-      <ChevronDown
-        className={`w-3 h-3 text-muted-foreground transition-transform ${open ? "" : "-rotate-90"}`}
-      />
+      <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${open ? "" : "-rotate-90"}`} />
     </div>
   </button>
 );
 
 const PropInput = ({
-  label,
-  value,
-  onChange,
-  type = "text",
-  suffix,
-  min,
-  max,
-  step = 1,
+  label, value, onChange, type = "text", suffix, min, max, step = 1,
 }: {
-  label: string;
-  value: string | number;
-  onChange: (v: string) => void;
-  type?: string;
-  suffix?: string;
-  min?: number;
-  max?: number;
-  step?: number;
+  label: string; value: string | number; onChange: (v: string) => void;
+  type?: string; suffix?: string; min?: number; max?: number; step?: number;
 }) => (
   <div className="flex items-center gap-1.5">
     <span className="text-[10px] text-muted-foreground w-6 font-mono shrink-0">{label}</span>
@@ -69,25 +49,15 @@ const PropInput = ({
   </div>
 );
 
-const ColorSwatch = ({
-  color,
-  onChange,
-}: {
-  color: string;
-  onChange: (c: string) => void;
-}) => {
-  // Only show picker for solid hex colors
+const ColorSwatch = ({ color, onChange, label }: { color: string; onChange: (c: string) => void; label?: string }) => {
   const isSolid = color.startsWith("#") || color.startsWith("rgb");
   const isGradient = color.startsWith("linear-gradient");
   const displayColor = isGradient ? "#8B5CF6" : isSolid ? color : "transparent";
 
   return (
     <div className="flex items-center gap-2">
-      <label className="w-7 h-7 rounded-md border border-border overflow-hidden cursor-pointer shrink-0 relative">
-        <div
-          className="w-full h-full"
-          style={{ background: color || "transparent" }}
-        />
+      <label className="w-7 h-7 rounded-md border border-border overflow-hidden cursor-pointer shrink-0 relative" title={label}>
+        <div className="w-full h-full" style={{ background: color || "transparent" }} />
         {isSolid && (
           <input
             type="color"
@@ -108,6 +78,167 @@ const ColorSwatch = ({
   );
 };
 
+// Shadow control
+const ShadowControl = ({ el, update }: { el: CanvasElement; update: (k: keyof CanvasElement, v: string) => void }) => {
+  const hasShadow = !!(el.shadowColor);
+  const [enabled, setEnabled] = useState(hasShadow);
+
+  const toggle = () => {
+    if (enabled) {
+      update("shadowColor", "");
+      update("shadowBlur", "0");
+      update("shadowX", "0");
+      update("shadowY", "0");
+    } else {
+      update("shadowColor", "rgba(0,0,0,0.4)");
+      update("shadowBlur", "16");
+      update("shadowX", "0");
+      update("shadowY", "8");
+    }
+    setEnabled(!enabled);
+  };
+
+  return (
+    <div className="space-y-2 pb-3">
+      <div className="flex items-center justify-between">
+        <button
+          onClick={toggle}
+          className={`flex items-center gap-1.5 text-xs transition-colors ${enabled ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          <div className={`w-3 h-3 rounded-sm border ${enabled ? "bg-primary border-primary" : "border-border"} flex items-center justify-center`}>
+            {enabled && <div className="w-1.5 h-1.5 rounded-sm bg-white" />}
+          </div>
+          Drop Shadow
+        </button>
+        {!enabled && (
+          <button onClick={toggle} className="text-[10px] text-primary hover:underline">+ Add</button>
+        )}
+      </div>
+      {enabled && (
+        <div className="pl-2 space-y-1.5">
+          <ColorSwatch
+            color={el.shadowColor || "rgba(0,0,0,0.4)"}
+            onChange={(c) => update("shadowColor", c)}
+            label="Shadow color"
+          />
+          <div className="grid grid-cols-2 gap-1.5">
+            <PropInput label="X" value={el.shadowX ?? 0} onChange={(v) => update("shadowX", v)} type="number" min={-100} max={100} />
+            <PropInput label="Y" value={el.shadowY ?? 8} onChange={(v) => update("shadowY", v)} type="number" min={-100} max={100} />
+            <PropInput label="Bl" value={el.shadowBlur ?? 16} onChange={(v) => update("shadowBlur", v)} type="number" min={0} max={100} suffix="px" />
+            <PropInput label="Sp" value={el.shadowSpread ?? 0} onChange={(v) => update("shadowSpread", v)} type="number" min={-50} max={50} suffix="px" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Blur control
+const BlurControl = ({ el, update }: { el: CanvasElement; update: (k: keyof CanvasElement, v: string) => void }) => {
+  const [enabled, setEnabled] = useState(!!(el.blur && el.blur > 0));
+
+  const toggle = () => {
+    if (enabled) {
+      update("blur", "0");
+    } else {
+      update("blur", "8");
+    }
+    setEnabled(!enabled);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <button
+          onClick={toggle}
+          className={`flex items-center gap-1.5 text-xs transition-colors ${enabled ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          <div className={`w-3 h-3 rounded-sm border ${enabled ? "bg-primary border-primary" : "border-border"} flex items-center justify-center`}>
+            {enabled && <div className="w-1.5 h-1.5 rounded-sm bg-white" />}
+          </div>
+          Layer Blur
+        </button>
+        {!enabled && (
+          <button onClick={toggle} className="text-[10px] text-primary hover:underline">+ Add</button>
+        )}
+      </div>
+      {enabled && (
+        <div className="pl-2">
+          <PropInput label="Bl" value={el.blur ?? 8} onChange={(v) => update("blur", v)} type="number" min={0} max={100} suffix="px" />
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Prototype interaction row
+const InteractionRow = ({
+  trigger, dest, onRemove,
+}: { trigger: string; dest: string; onRemove: () => void }) => (
+  <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-secondary/20 border border-border group">
+    <div className="flex-1">
+      <div className="flex items-center gap-1.5 text-xs">
+        <Zap className="w-3 h-3 text-primary" />
+        <span className="text-foreground font-medium">{trigger}</span>
+        <span className="text-muted-foreground">→</span>
+        <Link2 className="w-3 h-3 text-muted-foreground" />
+        <span className="text-muted-foreground">{dest}</span>
+      </div>
+    </div>
+    <button
+      onClick={onRemove}
+      className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:text-destructive transition-all"
+    >
+      <Trash2 className="w-3 h-3" />
+    </button>
+  </div>
+);
+
+// Export to SVG string
+function exportElementAsSVG(el: CanvasElement): string {
+  const isGradient = el.fill.startsWith("linear-gradient");
+  const gradId = "grad-export";
+  let fill = el.fill;
+  let gradDef = "";
+
+  if (isGradient) {
+    const match = el.fill.match(/#[0-9a-fA-F]{6}|rgba?\([^)]+\)/g);
+    const colors = match || ["#8B5CF6", "#06B6D4"];
+    gradDef = `<defs><linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${colors[0]}"/><stop offset="100%" stop-color="${colors[1] || colors[0]}"/></linearGradient></defs>`;
+    fill = `url(#${gradId})`;
+  }
+
+  const w = Math.round(el.width);
+  const h = Math.round(el.height);
+
+  let shape = "";
+  if (el.type === "rectangle" || el.type === "frame" || el.type === "image") {
+    shape = `<rect x="0" y="0" width="${w}" height="${h}" rx="${el.cornerRadius}" ry="${el.cornerRadius}" fill="${fill}" stroke="${el.stroke || "none"}" stroke-width="${el.strokeWidth}" opacity="${el.opacity}"/>`;
+  } else if (el.type === "ellipse") {
+    shape = `<ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2}" ry="${h / 2}" fill="${fill}" stroke="${el.stroke || "none"}" stroke-width="${el.strokeWidth}" opacity="${el.opacity}"/>`;
+  } else if (el.type === "text") {
+    shape = `<text x="0" y="0" fill="${fill}" font-size="${el.fontSize || 16}" font-weight="${el.fontWeight || "400"}" font-family="${el.fontFamily || "Inter, sans-serif"}" dominant-baseline="hanging" opacity="${el.opacity}">${el.textContent || ""}</text>`;
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${gradDef}${shape}</svg>`;
+}
+
+function downloadSVG(el: CanvasElement) {
+  const svg = exportElementAsSVG(el);
+  const blob = new Blob([svg], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${el.name.replace(/\s+/g, "_")}.svg`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyCSS(css: string) {
+  navigator.clipboard.writeText(css);
+  toast.success("CSS copied to clipboard");
+}
+
 // --- Main Component ---
 
 interface Props {
@@ -118,11 +249,10 @@ interface Props {
 const tabs = ["design", "prototype", "inspect"] as const;
 
 export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
-  const { state, updateElement, selectedElements, deleteSelected } = useCanvas();
+  const { state, updateElement, selectedElements, deleteSelected, duplicateSelected } = useCanvas();
 
   const [sections, setSections] = useState({
     transform: true,
-    layout: false,
     typography: true,
     fill: true,
     stroke: false,
@@ -131,10 +261,14 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
     export: false,
   });
 
+  const [interactions, setInteractions] = useState<{ id: string; trigger: string; dest: string }[]>([]);
+  const [showAddInteraction, setShowAddInteraction] = useState(false);
+  const [newTrigger, setNewTrigger] = useState("On Click");
+  const [newDest, setNewDest] = useState("Dashboard");
+
   const toggleSection = (key: keyof typeof sections) =>
     setSections((s) => ({ ...s, [key]: !s[key] }));
 
-  // Use the first selected element for display
   const el: CanvasElement | null = selectedElements[0] ?? null;
 
   const update = useCallback(
@@ -143,6 +277,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
       const numKeys: (keyof CanvasElement)[] = [
         "x", "y", "width", "height", "rotation", "opacity", "cornerRadius",
         "strokeWidth", "fontSize", "lineHeight", "letterSpacing",
+        "shadowX", "shadowY", "shadowBlur", "shadowSpread", "blur",
       ];
       if (numKeys.includes(key)) {
         const num = parseFloat(raw);
@@ -161,16 +296,20 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
         `left: ${Math.round(el.x)}px;`,
         `top: ${Math.round(el.y)}px;`,
         el.cornerRadius && `border-radius: ${el.cornerRadius}px;`,
-        el.fill && el.fill !== "transparent" && `background: ${el.fill};`,
+        el.fill && el.fill !== "transparent" && el.fill.startsWith("linear-gradient")
+          ? `background: ${el.fill};`
+          : el.fill && el.fill !== "transparent" ? `background-color: ${el.fill};` : null,
         el.stroke && `border: ${el.strokeWidth}px solid ${el.stroke};`,
         el.opacity !== 1 && `opacity: ${el.opacity};`,
         el.type === "text" && `font-size: ${el.fontSize}px;`,
         el.type === "text" && `font-weight: ${el.fontWeight};`,
         el.type === "text" && `font-family: "${el.fontFamily}";`,
         el.type === "text" && `line-height: ${el.lineHeight};`,
-        el.type === "text" && `letter-spacing: ${el.letterSpacing}em;`,
+        el.type === "text" && el.letterSpacing && `letter-spacing: ${el.letterSpacing}em;`,
         el.type === "text" && `color: ${el.fill};`,
-      ].filter(Boolean)
+        el.shadowColor && `box-shadow: ${el.shadowX || 0}px ${el.shadowY || 4}px ${el.shadowBlur || 16}px ${el.shadowSpread || 0}px ${el.shadowColor};`,
+        el.blur && el.blur > 0 && `filter: blur(${el.blur}px);`,
+      ].filter(Boolean) as string[]
     : [];
 
   return (
@@ -195,11 +334,15 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
       <div className="flex-1 overflow-auto">
         {/* No selection state */}
         {!el && activeTab === "design" && (
-          <div className="p-6 text-center space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-secondary/50 mx-auto flex items-center justify-center">
-              <ChevronDown className="w-5 h-5 text-muted-foreground rotate-90" />
+          <div className="p-6 text-center space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-secondary/50 mx-auto flex items-center justify-center">
+              <ChevronDown className="w-6 h-6 text-muted-foreground rotate-90" />
             </div>
             <p className="text-xs text-muted-foreground">Select an element to edit its properties</p>
+            <div className="text-[10px] text-muted-foreground/60 space-y-1">
+              <p>Click an element on the canvas</p>
+              <p>or click a layer in the panel</p>
+            </div>
           </div>
         )}
 
@@ -211,12 +354,19 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
               <input
                 value={el.name}
                 onChange={(e) => updateElement(el.id, { name: e.target.value })}
-                className="flex-1 bg-transparent text-xs font-medium outline-none text-foreground"
+                className="flex-1 bg-transparent text-xs font-medium outline-none text-foreground focus:text-primary transition-colors"
               />
               <button
-                onClick={deleteSelected}
+                onClick={() => { duplicateSelected(); toast.success(`Duplicated "${el.name}"`); }}
+                className="p-1 rounded hover:bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"
+                title="Duplicate (⌘D)"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => { deleteSelected(); toast.success("Element deleted"); }}
                 className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                title="Delete element"
+                title="Delete (⌫)"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -228,14 +378,14 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
               {sections.transform && (
                 <div className="space-y-1.5 pb-3">
                   <div className="grid grid-cols-2 gap-2">
-                    <PropInput label="X" value={Math.round(el.x)} onChange={(v) => update("x", v)} type="number" />
-                    <PropInput label="Y" value={Math.round(el.y)} onChange={(v) => update("y", v)} type="number" />
-                    <PropInput label="W" value={Math.round(el.width)} onChange={(v) => update("width", v)} type="number" min={1} />
-                    <PropInput label="H" value={Math.round(el.height)} onChange={(v) => update("height", v)} type="number" min={1} />
+                    <PropInput label="X" value={Math.round(el.x)} onChange={(v) => update("x", v)} type="number" suffix="px" />
+                    <PropInput label="Y" value={Math.round(el.y)} onChange={(v) => update("y", v)} type="number" suffix="px" />
+                    <PropInput label="W" value={Math.round(el.width)} onChange={(v) => update("width", v)} type="number" min={1} suffix="px" />
+                    <PropInput label="H" value={Math.round(el.height)} onChange={(v) => update("height", v)} type="number" min={1} suffix="px" />
                   </div>
                   <div className="grid grid-cols-2 gap-2 mt-1">
-                    <PropInput label="R°" value={el.rotation} onChange={(v) => update("rotation", v)} type="number" min={-360} max={360} />
-                    <PropInput label="O%" value={Math.round(el.opacity * 100)} onChange={(v) => update("opacity", String(parseFloat(v) / 100))} type="number" min={0} max={100} />
+                    <PropInput label="R°" value={el.rotation} onChange={(v) => update("rotation", v)} type="number" min={-360} max={360} suffix="°" />
+                    <PropInput label="O%" value={Math.round(el.opacity * 100)} onChange={(v) => update("opacity", String(parseFloat(v) / 100))} type="number" min={0} max={100} suffix="%" />
                   </div>
                 </div>
               )}
@@ -253,7 +403,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                         onChange={(e) => updateElement(el.id, { fontFamily: e.target.value })}
                         className="flex-1 h-7 px-2 rounded-md bg-secondary/30 border border-border text-xs text-foreground outline-none focus:border-primary/50"
                       >
-                        {["Inter", "Roboto", "Poppins", "DM Sans", "Space Grotesk", "JetBrains Mono", "Playfair Display"].map((f) => (
+                        {["Inter", "Roboto", "Poppins", "DM Sans", "Space Grotesk", "JetBrains Mono", "Playfair Display", "Geist", "Outfit"].map((f) => (
                           <option key={f} value={f}>{f}</option>
                         ))}
                       </select>
@@ -268,7 +418,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                       </select>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <PropInput label="Sz" value={el.fontSize || 16} onChange={(v) => update("fontSize", v)} type="number" min={8} max={200} />
+                      <PropInput label="Sz" value={el.fontSize || 16} onChange={(v) => update("fontSize", v)} type="number" min={8} max={200} suffix="px" />
                       <PropInput label="Lh" value={el.lineHeight || 1.4} onChange={(v) => update("lineHeight", v)} type="number" min={0.8} max={4} step={0.1} />
                       <PropInput label="Ls" value={el.letterSpacing || 0} onChange={(v) => update("letterSpacing", v)} type="number" min={-0.1} max={0.5} step={0.01} />
                     </div>
@@ -306,17 +456,35 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                   open={sections.fill}
                   onToggle={() => toggleSection("fill")}
                   extra={
-                    <button className="mr-1 text-muted-foreground hover:text-foreground" onClick={(e) => e.stopPropagation()}>
+                    <button className="mr-1 text-muted-foreground hover:text-foreground" onClick={(e) => e.stopPropagation()} title="Add fill layer">
                       <Plus className="w-3 h-3" />
                     </button>
                   }
                 />
                 {sections.fill && (
-                  <div className="pb-3">
+                  <div className="pb-3 space-y-2">
                     <ColorSwatch
                       color={el.fill || "transparent"}
                       onChange={(c) => updateElement(el.id, { fill: c })}
                     />
+                    {/* Gradient presets */}
+                    <div className="grid grid-cols-5 gap-1">
+                      {[
+                        "linear-gradient(135deg, #8B5CF6, #06B6D4)",
+                        "linear-gradient(135deg, #F59E0B, #EF4444)",
+                        "linear-gradient(135deg, #10B981, #3B82F6)",
+                        "linear-gradient(135deg, #EC4899, #8B5CF6)",
+                        "linear-gradient(to right, #1a1a24, #2a2a3a)",
+                      ].map((grad) => (
+                        <button
+                          key={grad}
+                          onClick={() => updateElement(el.id, { fill: grad })}
+                          className="w-full aspect-square rounded-md border border-border hover:scale-105 transition-transform"
+                          style={{ background: grad }}
+                          title="Apply gradient"
+                        />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -340,18 +508,43 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                     color={el.stroke || "transparent"}
                     onChange={(c) => updateElement(el.id, { stroke: c })}
                   />
-                  <PropInput label="W" value={el.strokeWidth || 1} onChange={(v) => update("strokeWidth", v)} type="number" min={0} max={20} />
+                  <div className="grid grid-cols-2 gap-2">
+                    <PropInput label="W" value={el.strokeWidth || 1} onChange={(v) => update("strokeWidth", v)} type="number" min={0} max={20} suffix="px" />
+                    <select
+                      className="h-7 px-2 rounded-md bg-secondary/30 border border-border text-xs text-foreground outline-none focus:border-primary/50"
+                      defaultValue="inside"
+                    >
+                      <option value="inside">Inside</option>
+                      <option value="center">Center</option>
+                      <option value="outside">Outside</option>
+                    </select>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Corner Radius (non-ellipse, non-line, non-text) */}
+            {/* Corner Radius */}
             {!["ellipse", "line", "text"].includes(el.type) && (
               <div>
                 <SectionHeader title="Corner Radius" open={sections.radius} onToggle={() => toggleSection("radius")} />
                 {sections.radius && (
-                  <div className="pb-3">
-                    <PropInput label="r" value={el.cornerRadius || 0} onChange={(v) => update("cornerRadius", v)} type="number" min={0} max={999} />
+                  <div className="pb-3 space-y-2">
+                    <PropInput label="r" value={el.cornerRadius || 0} onChange={(v) => update("cornerRadius", v)} type="number" min={0} max={999} suffix="px" />
+                    {/* Radius presets */}
+                    <div className="flex gap-1.5">
+                      {[0, 4, 8, 12, 16, 24, 999].map((r) => (
+                        <button
+                          key={r}
+                          onClick={() => updateElement(el.id, { cornerRadius: r })}
+                          className={`flex-1 py-1.5 rounded text-[9px] font-mono transition-colors ${
+                            el.cornerRadius === r ? "bg-primary/20 text-primary" : "bg-secondary/30 text-muted-foreground hover:text-foreground"
+                          }`}
+                          title={r === 999 ? "Full radius" : `${r}px`}
+                        >
+                          {r === 999 ? "∞" : r}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -361,14 +554,10 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
             <div>
               <SectionHeader title="Effects" open={sections.effects} onToggle={() => toggleSection("effects")} />
               {sections.effects && (
-                <div className="pb-3 space-y-2">
-                  <div className="p-2.5 rounded-lg bg-secondary/20 border border-border/50 flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Drop Shadow</span>
-                    <button className="text-[10px] text-primary hover:underline">+ Add</button>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-secondary/20 border border-border/50 flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Blur</span>
-                    <button className="text-[10px] text-primary hover:underline">+ Add</button>
+                <div className="pb-3 space-y-3">
+                  <ShadowControl el={el} update={update} />
+                  <div className="border-t border-border/50 pt-3">
+                    <BlurControl el={el} update={update} />
                   </div>
                 </div>
               )}
@@ -380,16 +569,32 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
               {sections.export && (
                 <div className="pb-3 space-y-2">
                   <div className="flex gap-2">
-                    {["PNG", "SVG", "PDF"].map((fmt) => (
+                    {["SVG", "CSS"].map((fmt) => (
                       <button
                         key={fmt}
-                        className="flex-1 py-1.5 rounded-lg bg-secondary/30 border border-border text-xs text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+                        onClick={() => {
+                          if (fmt === "SVG") {
+                            downloadSVG(el);
+                            toast.success(`${el.name} exported as SVG`);
+                          } else if (fmt === "CSS") {
+                            copyCSS(inspectCSS.join("\n"));
+                          }
+                        }}
+                        className="flex-1 py-1.5 rounded-lg bg-secondary/30 border border-border text-xs text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors flex items-center justify-center gap-1"
                       >
+                        <Download className="w-3 h-3" />
                         {fmt}
                       </button>
                     ))}
                   </div>
-                  <button className="w-full py-2 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary hover:bg-primary/15 transition-colors">
+                  <button
+                    onClick={() => {
+                      downloadSVG(el);
+                      toast.success(`${el.name} exported`);
+                    }}
+                    className="w-full py-2 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary hover:bg-primary/15 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <Download className="w-3 h-3" />
                     Export {el.name}
                   </button>
                 </div>
@@ -401,28 +606,126 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
         {/* Prototype tab */}
         {activeTab === "prototype" && (
           <div className="p-4 space-y-4">
-            <p className="text-xs text-muted-foreground">
-              {el ? `Interactions for "${el.name}"` : "Select a layer to add interactions"}
-            </p>
-            <div className="p-4 rounded-xl border border-dashed border-border text-center space-y-2">
-              <div className="w-8 h-8 mx-auto rounded-lg bg-secondary/50 flex items-center justify-center">
-                <Plus className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <p className="text-xs text-muted-foreground">No interactions yet</p>
-              <button className="text-xs text-primary hover:underline">+ Add interaction</button>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-foreground">Interactions</p>
+              <p className="text-[10px] text-muted-foreground">
+                {el ? `Add click/hover interactions to "${el.name}"` : "Select a layer to add interactions"}
+              </p>
             </div>
-            {el && (
+
+            {interactions.length === 0 && !showAddInteraction ? (
+              <div className="p-4 rounded-xl border border-dashed border-border text-center space-y-2">
+                <div className="w-8 h-8 mx-auto rounded-lg bg-secondary/50 flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <p className="text-xs text-muted-foreground">No interactions yet</p>
+                <button
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => setShowAddInteraction(true)}
+                >
+                  + Add interaction
+                </button>
+              </div>
+            ) : (
               <div className="space-y-2">
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Triggers</p>
-                {["On Click", "On Hover", "On Focus"].map((trigger) => (
-                  <button
-                    key={trigger}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/20 border border-border text-xs text-muted-foreground hover:text-foreground hover:border-primary/20 transition-colors"
-                  >
-                    <Plus className="w-3 h-3 text-primary" />
-                    {trigger}
-                  </button>
+                {interactions.map((inter) => (
+                  <InteractionRow
+                    key={inter.id}
+                    trigger={inter.trigger}
+                    dest={inter.dest}
+                    onRemove={() => setInteractions((prev) => prev.filter((i) => i.id !== inter.id))}
+                  />
                 ))}
+                {!showAddInteraction && (
+                  <button
+                    className="w-full py-2 rounded-lg border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+                    onClick={() => setShowAddInteraction(true)}
+                  >
+                    + Add interaction
+                  </button>
+                )}
+              </div>
+            )}
+
+            {showAddInteraction && (
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-3 animate-fade-in">
+                <p className="text-xs font-medium text-foreground">New Interaction</p>
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-[10px] text-muted-foreground mb-1 block">Trigger</label>
+                    <select
+                      value={newTrigger}
+                      onChange={(e) => setNewTrigger(e.target.value)}
+                      className="w-full h-7 px-2 rounded-md bg-secondary/30 border border-border text-xs text-foreground outline-none focus:border-primary/50"
+                    >
+                      {["On Click", "On Hover", "On Focus", "On Press", "On Drag", "Mouse Enter", "Mouse Leave"].map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground mb-1 block">Navigate to</label>
+                    <select
+                      value={newDest}
+                      onChange={(e) => setNewDest(e.target.value)}
+                      className="w-full h-7 px-2 rounded-md bg-secondary/30 border border-border text-xs text-foreground outline-none focus:border-primary/50"
+                    >
+                      {["Landing Page", "Dashboard", "Settings", "Profile", "Onboarding", "Checkout", "Confirmation"].map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setInteractions((prev) => [...prev, { id: String(Date.now()), trigger: newTrigger, dest: newDest }]);
+                      setShowAddInteraction(false);
+                      toast.success("Interaction added");
+                    }}
+                    className="flex-1 py-1.5 rounded-lg bg-primary/20 text-xs text-primary hover:bg-primary/30 transition-colors"
+                  >
+                    Add
+                  </button>
+                  <button
+                    onClick={() => setShowAddInteraction(false)}
+                    className="flex-1 py-1.5 rounded-lg bg-secondary/30 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {el && (
+              <div className="space-y-2 mt-4">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Animation</p>
+                <div className="flex gap-2">
+                  {["None", "Fade", "Slide", "Push", "Dissolve"].map((anim) => (
+                    <button
+                      key={anim}
+                      className={`flex-1 py-1.5 text-[10px] rounded-md transition-colors ${
+                        anim === "None" ? "bg-primary/15 text-primary" : "bg-secondary/20 text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {anim}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-3">
+                  <label className="text-[10px] text-muted-foreground mb-1 block">Duration</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min={100}
+                      max={1000}
+                      step={50}
+                      defaultValue={300}
+                      className="flex-1"
+                    />
+                    <span className="text-[10px] font-mono text-muted-foreground w-10">300ms</span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -432,43 +735,90 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
         {activeTab === "inspect" && (
           <div className="p-4 space-y-3">
             {!el ? (
-              <p className="text-xs text-muted-foreground">Select an element to inspect its CSS</p>
+              <div className="text-center space-y-2 py-6">
+                <p className="text-xs text-muted-foreground">Select an element to inspect its CSS</p>
+              </div>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-xs font-medium text-muted-foreground">CSS Properties</p>
                   <button
-                    onClick={() => navigator.clipboard.writeText(inspectCSS.join("\n"))}
+                    onClick={() => { copyCSS(inspectCSS.join("\n")); }}
                     className="text-[10px] text-primary hover:underline flex items-center gap-1"
                   >
-                    <Copy className="w-3 h-3" /> Copy
+                    <Copy className="w-3 h-3" /> Copy All
                   </button>
                 </div>
                 <div className="rounded-lg bg-secondary/30 border border-border p-3 font-mono text-[11px] space-y-1">
                   {inspectCSS.map((line, i) => {
                     if (!line) return null;
-                    const [prop, ...rest] = (line as string).split(":");
+                    const colonIdx = (line as string).indexOf(":");
+                    const prop = (line as string).slice(0, colonIdx);
+                    const val = (line as string).slice(colonIdx);
                     return (
-                      <p key={i}>
+                      <p key={i} className="flex items-start gap-0">
                         <span className="text-primary">{prop}</span>
-                        <span className="text-muted-foreground">:{rest.join(":")}</span>
+                        <span className="text-muted-foreground">{val}</span>
                       </p>
                     );
                   })}
                 </div>
-                <div className="mt-3">
+
+                {/* Tailwind equivalent */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Tailwind Classes</p>
+                    <button
+                      onClick={() => {
+                        const tw = [
+                          el.cornerRadius ? `rounded-[${el.cornerRadius}px]` : "",
+                          el.opacity !== 1 ? `opacity-${Math.round(el.opacity * 100)}` : "",
+                        ].filter(Boolean).join(" ");
+                        navigator.clipboard.writeText(tw);
+                        toast.success("Tailwind classes copied");
+                      }}
+                      className="text-[10px] text-primary hover:underline flex items-center gap-1"
+                    >
+                      <Copy className="w-3 h-3" /> Copy
+                    </button>
+                  </div>
+                  <div className="rounded-lg bg-secondary/30 border border-border p-3 font-mono text-[11px] text-muted-foreground">
+                    <span className="text-cyan-400">
+                      {[
+                        el.type === "rectangle" ? "rounded" : "",
+                        el.cornerRadius ? `rounded-[${el.cornerRadius}px]` : "",
+                        el.opacity !== 1 ? `opacity-${Math.round(el.opacity * 100)}` : "",
+                        el.shadowBlur ? `shadow-lg` : "",
+                      ].filter(Boolean).join(" ") || <span className="text-muted-foreground/40">/* no Tailwind classes */</span>}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Box Model */}
+                <div>
                   <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">Box Model</p>
-                  <div className="aspect-square rounded-lg bg-secondary/20 border border-border p-3 flex items-center justify-center">
-                    <div className="border-2 border-dashed border-border/60 rounded px-6 py-4 text-center">
-                      <div className="text-[9px] text-muted-foreground mb-2">margin</div>
-                      <div className="border border-primary/30 rounded px-3 py-2 bg-primary/5">
+                  <div className="rounded-lg bg-secondary/20 border border-border p-3">
+                    <div className="border-2 border-dashed border-border/60 rounded p-2 text-center">
+                      <div className="text-[9px] text-muted-foreground mb-1">margin</div>
+                      <div className="border border-primary/30 rounded p-2 bg-primary/5">
                         <div className="text-[9px] text-muted-foreground mb-1">padding</div>
-                        <div className="text-[9px] text-primary font-mono">
+                        <div className="text-[10px] text-primary font-mono bg-primary/10 rounded px-2 py-1">
                           {Math.round(el.width)} × {Math.round(el.height)}
                         </div>
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Export from inspect */}
+                <div className="pt-1">
+                  <button
+                    onClick={() => { downloadSVG(el); toast.success(`${el.name} exported as SVG`); }}
+                    className="w-full py-2 rounded-lg bg-secondary/30 border border-border text-xs text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <Download className="w-3 h-3" />
+                    Export as SVG
+                  </button>
                 </div>
               </>
             )}
