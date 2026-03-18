@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, Maximize, Grid3X3 } from "lucide-react";
 import CanvasAIBar from "./CanvasAIBar";
 import ContextAIMenu from "./ContextAIMenu";
+import AIContextualHUD from "./AIContextualHUD";
 import { useCanvas, CanvasElement } from "@/contexts/CanvasContext";
 
 interface Props {
@@ -797,8 +798,19 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         </div>
       </div>
 
+      {/* Contextual AI HUD – appears above CanvasAIBar when element is selected */}
+      <AIContextualHUD
+        element={selectedElements[0] ?? null}
+        onSendPrompt={() => {}}
+        onOpenChat={() => onOpenAI?.()}
+      />
+
       {/* Canvas AI command bar */}
-      <CanvasAIBar selectedLayer={selectedIds[0] || null} onSendPrompt={() => onOpenAI?.()} />
+      <CanvasAIBar
+        selectedLayer={selectedIds[0] || null}
+        onSendPrompt={() => onOpenAI?.()}
+        onOpenChat={() => onOpenAI?.()}
+      />
 
       {/* Context AI menu */}
       {contextMenu && (
