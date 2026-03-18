@@ -7,6 +7,7 @@ import {
   LayoutGrid, Star, Settings, ChevronDown, MoreHorizontal
 } from "lucide-react";
 import { sampleProjects } from "@/data/mockData";
+import AIGenerationModal from "@/components/editor/AIGenerationModal";
 
 const navItems = [
   { icon: Clock, label: "Recent", active: true },
@@ -27,6 +28,7 @@ const thumbnailColors: Record<string, string> = {
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [showGenModal, setShowGenModal] = useState(false);
   const navigate = useNavigate();
 
   return (
@@ -34,7 +36,7 @@ const Dashboard = () => {
       {/* Sidebar */}
       <aside className="w-60 border-r border-border bg-card flex flex-col shrink-0">
         <div className="p-4 flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg nova-gradient flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg nova-gradient flex items-center justify-center shadow-md shadow-primary/20">
             <Sparkles className="w-3.5 h-3.5 text-primary-foreground" />
           </div>
           <span className="font-semibold text-sm">Nova Studio</span>
@@ -55,7 +57,7 @@ const Dashboard = () => {
               key={item.label}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
                 item.active
-                  ? "bg-secondary text-foreground font-medium"
+                  ? "bg-primary/10 text-primary font-medium"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
               }`}
             >
@@ -87,11 +89,11 @@ const Dashboard = () => {
             />
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="border-border">
+            <Button variant="outline" size="sm" className="border-border" onClick={() => navigate("/editor")}>
               <Plus className="w-4 h-4 mr-1.5" />
               New File
             </Button>
-            <Button size="sm" className="nova-gradient border-0 text-primary-foreground hover:opacity-90">
+            <Button size="sm" className="nova-gradient border-0 text-primary-foreground hover:opacity-90" onClick={() => setShowGenModal(true)}>
               <Sparkles className="w-4 h-4 mr-1.5" />
               Start with AI
             </Button>
@@ -115,12 +117,12 @@ const Dashboard = () => {
                 <button
                   key={project.id}
                   onClick={() => navigate("/editor")}
-                  className="group text-left rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200"
+                  className="group text-left rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
                 >
                   {/* Thumbnail */}
                   <div className={`h-40 rounded-t-xl bg-gradient-to-br ${thumbnailColors[project.thumbnail]} nova-dot-grid relative overflow-hidden`}>
                     {/* Mock artboard */}
-                    <div className="absolute inset-6 rounded-lg bg-card/80 backdrop-blur-sm border border-border/50 flex flex-col items-center justify-center gap-2 p-4">
+                    <div className="absolute inset-6 rounded-lg bg-card/80 backdrop-blur-sm border border-border/50 flex flex-col items-center justify-center gap-2 p-4 group-hover:scale-[1.02] transition-transform duration-300">
                       <div className="w-16 h-2 rounded bg-foreground/15" />
                       <div className="w-12 h-1.5 rounded bg-foreground/10" />
                       <div className="w-10 h-4 rounded nova-gradient mt-1 opacity-60" />
@@ -163,6 +165,13 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* AI Generation Modal */}
+      <AIGenerationModal
+        open={showGenModal}
+        onClose={() => setShowGenModal(false)}
+        onGenerate={() => navigate("/editor")}
+      />
     </div>
   );
 };
