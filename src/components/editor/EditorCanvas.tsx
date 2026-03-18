@@ -1,242 +1,696 @@
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, Maximize } from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize, Grid3X3 } from "lucide-react";
 import CanvasAIBar from "./CanvasAIBar";
 import ContextAIMenu from "./ContextAIMenu";
+import { useCanvas, CanvasElement } from "@/contexts/CanvasContext";
 
 interface Props {
-  zoom: number;
-  onZoomChange: (z: number) => void;
-  selectedLayer: string | null;
-  onSelectLayer?: (id: string) => void;
   onOpenAI?: () => void;
 }
 
-const EditorCanvas = ({ zoom, onZoomChange, selectedLayer, onSelectLayer, onOpenAI }: Props) => {
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; layer: string } | null>(null);
+type DragState =
+  | { kind: "none" }
+  | { kind: "drawing"; startX: number; startY: number; currentX: number; currentY: number }
+  | { kind: "moving"; startX: number; startY: number; origPositions: Record<string, { x: number; y: number }> }
+  | { kind: "resizing"; handle: string; startX: number; startY: number; origEl: CanvasElement };
 
-  const handleContextMenu = (e: React.MouseEvent, layerId: string, layerName: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setContextMenu({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY, layer: layerName });
+// Render a single canvas element as SVG
+const SvgElement = ({
+  el,
+  isSelected,
+  onPointerDown,
+  onDoubleClick,
+  editingTextId,
+  onTextChange,
+}: {
+  el: CanvasElement;
+  isSelected: boolean;
+  onPointerDown: (e: React.PointerEvent, id: string) => void;
+  onDoubleClick: (e: React.MouseEvent, id: string) => void;
+  editingTextId: string | null;
+  onTextChange: (id: string, val: string) => void;
+}) => {
+  if (!el.visible) return null;
+
+  const isGradient = el.fill.startsWith("linear-gradient");
+  const gradId = `grad-${el.id}`;
+
+  // Parse linear-gradient to get colors
+  let fillRef = el.fill;
+  let gradDef: React.ReactNode = null;
+  if (isGradient) {
+    const match = el.fill.match(/#[0-9a-fA-F]{6}|rgba?\([^)]+\)/g);
+    const colors = match || ["#8B5CF6", "#06B6D4"];
+    gradDef = (
+      <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor={colors[0]} />
+        <stop offset="100%" stopColor={colors[1] || colors[0]} />
+      </linearGradient>
+    );
+    fillRef = `url(#${gradId})`;
+  }
+
+  const commonProps = {
+    fill: fillRef,
+    stroke: el.stroke || "none",
+    strokeWidth: el.strokeWidth,
+    opacity: el.opacity,
+    style: { cursor: el.locked ? "default" : "move" },
+    onPointerDown: (e: React.PointerEvent) => !el.locked && onPointerDown(e, el.id),
+    onDoubleClick: (e: React.MouseEvent) => onDoubleClick(e, el.id),
   };
 
-  const handleCanvasPrompt = (prompt: string) => {
-    onOpenAI?.();
-  };
+  const transform = el.rotation
+    ? `rotate(${el.rotation}, ${el.x + el.width / 2}, ${el.y + el.height / 2})`
+    : undefined;
 
-  const handleLayerClick = (layerId: string) => {
-    onSelectLayer?.(layerId);
+  return (
+    <g transform={transform}>
+      {gradDef && <defs>{gradDef}</defs>}
+      {el.type === "rectangle" || el.type === "frame" || el.type === "image" ? (
+        <rect
+          x={el.x}
+          y={el.y}
+          width={Math.max(1, el.width)}
+          height={Math.max(1, el.height)}
+          rx={el.cornerRadius}
+          ry={el.cornerRadius}
+          {...commonProps}
+        />
+      ) : el.type === "ellipse" ? (
+        <ellipse
+          cx={el.x + el.width / 2}
+          cy={el.y + el.height / 2}
+          rx={Math.max(1, el.width / 2)}
+          ry={Math.max(1, el.height / 2)}
+          {...commonProps}
+        />
+      ) : el.type === "line" ? (
+        <line
+          x1={el.x}
+          y1={el.y}
+          x2={el.x + el.width}
+          y2={el.y + el.height}
+          stroke={el.stroke || el.fill}
+          strokeWidth={Math.max(1, el.strokeWidth || 2)}
+          opacity={el.opacity}
+          style={commonProps.style}
+          onPointerDown={commonProps.onPointerDown}
+          onDoubleClick={commonProps.onDoubleClick}
+        />
+      ) : el.type === "text" ? (
+        editingTextId === el.id ? (
+          <foreignObject x={el.x} y={el.y} width={el.width} height={el.height}>
+            <textarea
+              style={{
+                width: "100%",
+                height: "100%",
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                color: el.fill,
+                fontSize: `${el.fontSize || 16}px`,
+                fontWeight: el.fontWeight || "400",
+                fontFamily: el.fontFamily || "Inter, sans-serif",
+                lineHeight: el.lineHeight || 1.4,
+                letterSpacing: el.letterSpacing ? `${el.letterSpacing}em` : "normal",
+                textAlign: el.textAlign || "left",
+                resize: "none",
+                padding: "0",
+              }}
+              defaultValue={el.textContent || ""}
+              onBlur={(e) => onTextChange(el.id, e.target.value)}
+              autoFocus
+            />
+          </foreignObject>
+        ) : (
+          <text
+            x={el.x}
+            y={el.y}
+            fill={fillRef}
+            fontSize={el.fontSize || 16}
+            fontWeight={el.fontWeight || "400"}
+            fontFamily={el.fontFamily || "Inter, sans-serif"}
+            dominantBaseline="hanging"
+            textAnchor={el.textAlign === "center" ? "middle" : el.textAlign === "right" ? "end" : "start"}
+            style={{
+              letterSpacing: el.letterSpacing ? `${el.letterSpacing}em` : "normal",
+              userSelect: "none",
+              cursor: el.locked ? "default" : "move",
+            }}
+            opacity={el.opacity}
+            onPointerDown={(e) => !el.locked && onPointerDown(e, el.id)}
+            onDoubleClick={(e) => onDoubleClick(e, el.id)}
+          >
+            {(el.textContent || "").split("\n").map((line, i) => (
+              <tspan
+                key={i}
+                x={el.textAlign === "center" ? el.x + el.width / 2 : el.textAlign === "right" ? el.x + el.width : el.x}
+                dy={i === 0 ? 0 : (el.fontSize || 16) * (el.lineHeight || 1.4)}
+              >
+                {line}
+              </tspan>
+            ))}
+          </text>
+        )
+      ) : null}
+
+      {/* Frame label */}
+      {el.isFrame && (
+        <text
+          x={el.x}
+          y={el.y - 10}
+          fill="#8B5CF6"
+          fontSize={11}
+          fontFamily="Inter, sans-serif"
+          fontWeight="500"
+          style={{ userSelect: "none", pointerEvents: "none" }}
+        >
+          {el.name}
+        </text>
+      )}
+    </g>
+  );
+};
+
+// Selection handles
+const SelectionHandles = ({
+  el,
+  onHandlePointerDown,
+}: {
+  el: CanvasElement;
+  onHandlePointerDown: (e: React.PointerEvent, handle: string, el: CanvasElement) => void;
+}) => {
+  const { x, y, width, height } = el;
+  const handles = [
+    { id: "nw", cx: x, cy: y },
+    { id: "n", cx: x + width / 2, cy: y },
+    { id: "ne", cx: x + width, cy: y },
+    { id: "e", cx: x + width, cy: y + height / 2 },
+    { id: "se", cx: x + width, cy: y + height },
+    { id: "s", cx: x + width / 2, cy: y + height },
+    { id: "sw", cx: x, cy: y + height },
+    { id: "w", cx: x, cy: y + height / 2 },
+  ];
+  const cursorMap: Record<string, string> = {
+    nw: "nw-resize", n: "n-resize", ne: "ne-resize", e: "e-resize",
+    se: "se-resize", s: "s-resize", sw: "sw-resize", w: "w-resize",
   };
 
   return (
-    <div className="flex-1 relative overflow-hidden bg-background">
+    <g>
+      {/* Bounding box */}
+      <rect
+        x={x - 0.5}
+        y={y - 0.5}
+        width={width + 1}
+        height={height + 1}
+        fill="none"
+        stroke="#8B5CF6"
+        strokeWidth={1}
+        strokeDasharray={el.isFrame ? "4 2" : undefined}
+        style={{ pointerEvents: "none" }}
+      />
+      {/* Resize handles */}
+      {handles.map((h) => (
+        <rect
+          key={h.id}
+          x={h.cx - 4}
+          y={h.cy - 4}
+          width={8}
+          height={8}
+          rx={1}
+          fill="white"
+          stroke="#8B5CF6"
+          strokeWidth={1.5}
+          style={{ cursor: cursorMap[h.id], pointerEvents: "all" }}
+          onPointerDown={(e) => onHandlePointerDown(e, h.id, el)}
+        />
+      ))}
+    </g>
+  );
+};
+
+const ARTBOARD_PADDING = 80; // padding around artboard
+
+const EditorCanvas = ({ onOpenAI }: Props) => {
+  const { state, dispatch, addElement, updateElement, selectById, clearSelection, deleteSelected, selectedElements } = useCanvas();
+  const { elements, selectedIds, activeTool, zoom, panX, panY, artboardWidth, artboardHeight, artboardName, showGrid } = state;
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  const [dragState, setDragState] = useState<DragState>({ kind: "none" });
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; name: string } | null>(null);
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+
+  const scale = zoom / 100;
+
+  // SVG viewport dimensions (larger than artboard)
+  const svgWidth = artboardWidth + ARTBOARD_PADDING * 2;
+  const svgHeight = artboardHeight + ARTBOARD_PADDING * 2;
+
+  // Artboard position in SVG
+  const artX = ARTBOARD_PADDING;
+  const artY = ARTBOARD_PADDING;
+
+  // Convert screen coords to SVG artboard coords
+  const screenToArtboard = useCallback((clientX: number, clientY: number): { x: number; y: number } => {
+    if (!svgRef.current) return { x: 0, y: 0 };
+    const rect = svgRef.current.getBoundingClientRect();
+    const svgX = (clientX - rect.left) / scale;
+    const svgY = (clientY - rect.top) / scale;
+    return { x: svgX - artX, y: svgY - artY };
+  }, [scale, artX, artY]);
+
+  const handleCanvasPointerDown = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    if (e.button !== 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+
+    const { x, y } = screenToArtboard(e.clientX, e.clientY);
+
+    if (activeTool === "move" || activeTool === "hand") {
+      clearSelection();
+      return;
+    }
+
+    if (["rectangle", "ellipse", "frame", "line", "image"].includes(activeTool)) {
+      setDragState({ kind: "drawing", startX: x, startY: y, currentX: x, currentY: y });
+    } else if (activeTool === "text") {
+      // Place text at click position
+      addElement({
+        type: "text",
+        x, y, width: 200, height: 40,
+        rotation: 0, fill: "#F2F2F2", stroke: "", strokeWidth: 0,
+        opacity: 1, cornerRadius: 0, name: "Text",
+        textContent: "Double click to edit",
+        fontSize: 16, fontWeight: "400", fontFamily: "Inter",
+        textAlign: "left", lineHeight: 1.4, letterSpacing: 0,
+        visible: true, locked: false,
+      });
+      dispatch({ type: "SET_TOOL", tool: "move" });
+    }
+  }, [activeTool, screenToArtboard, clearSelection, addElement, dispatch]);
+
+  const handleElementPointerDown = useCallback((e: React.PointerEvent, id: string) => {
+    e.stopPropagation();
+    if (activeTool !== "move") return;
+
+    if (editingTextId) {
+      setEditingTextId(null);
+    }
+
+    selectById(id, e.shiftKey || e.metaKey || e.ctrlKey);
+
+    const allSelected = e.shiftKey || e.metaKey || e.ctrlKey
+      ? [...(selectedIds.includes(id) ? selectedIds.filter(i => i !== id) : [...selectedIds, id])]
+      : [id];
+
+    const origPositions: Record<string, { x: number; y: number }> = {};
+    allSelected.forEach((sid) => {
+      const el = elements.find((el) => el.id === sid);
+      if (el) origPositions[sid] = { x: el.x, y: el.y };
+    });
+    if (!origPositions[id]) {
+      const el = elements.find((el) => el.id === id);
+      if (el) origPositions[id] = { x: el.x, y: el.y };
+    }
+
+    const { x: startX, y: startY } = screenToArtboard(e.clientX, e.clientY);
+    setDragState({ kind: "moving", startX, startY, origPositions });
+    (e.currentTarget as Element).closest("svg")?.setPointerCapture(e.pointerId);
+  }, [activeTool, editingTextId, selectById, selectedIds, elements, screenToArtboard]);
+
+  const handleHandlePointerDown = useCallback((e: React.PointerEvent, handle: string, el: CanvasElement) => {
+    e.stopPropagation();
+    const { x: startX, y: startY } = screenToArtboard(e.clientX, e.clientY);
+    setDragState({ kind: "resizing", handle, startX, startY, origEl: { ...el } });
+    (e.currentTarget as Element).closest("svg")?.setPointerCapture(e.pointerId);
+  }, [screenToArtboard]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    if (dragState.kind === "none") return;
+    const { x: cx, y: cy } = screenToArtboard(e.clientX, e.clientY);
+
+    if (dragState.kind === "drawing") {
+      setDragState((prev) => prev.kind === "drawing" ? { ...prev, currentX: cx, currentY: cy } : prev);
+    } else if (dragState.kind === "moving") {
+      const dx = cx - dragState.startX;
+      const dy = cy - dragState.startY;
+      Object.entries(dragState.origPositions).forEach(([id, orig]) => {
+        const el = elements.find((e) => e.id === id);
+        if (el && !el.locked) {
+          updateElement(id, { x: orig.x + dx, y: orig.y + dy });
+        }
+      });
+    } else if (dragState.kind === "resizing") {
+      const { handle, startX, startY, origEl } = dragState;
+      const dx = cx - startX;
+      const dy = cy - startY;
+      let { x, y, width, height } = origEl;
+
+      if (handle.includes("e")) width = Math.max(10, origEl.width + dx);
+      if (handle.includes("s")) height = Math.max(10, origEl.height + dy);
+      if (handle.includes("w")) { x = origEl.x + dx; width = Math.max(10, origEl.width - dx); }
+      if (handle.includes("n")) { y = origEl.y + dy; height = Math.max(10, origEl.height - dy); }
+
+      updateElement(origEl.id, { x, y, width, height });
+    }
+  }, [dragState, screenToArtboard, elements, updateElement]);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    if (dragState.kind === "drawing") {
+      const { startX, startY, currentX, currentY } = dragState;
+      const x = Math.min(startX, currentX);
+      const y = Math.min(startY, currentY);
+      const w = Math.abs(currentX - startX);
+      const h = Math.abs(currentY - startY);
+
+      if (w > 5 && h > 5) {
+        const typeMap: Record<string, string> = {
+          rectangle: "Rectangle", ellipse: "Ellipse", frame: "Frame", line: "Line", image: "Image",
+        };
+        addElement({
+          type: activeTool as any,
+          x, y, width: w, height: h,
+          rotation: 0,
+          fill: activeTool === "frame" ? "rgba(20,20,28,0.5)" : "rgba(139,92,246,0.2)",
+          stroke: activeTool === "frame" ? "rgba(255,255,255,0.12)" : "rgba(139,92,246,0.5)",
+          strokeWidth: 1,
+          opacity: 1, cornerRadius: activeTool === "frame" ? 12 : 8,
+          name: typeMap[activeTool] || activeTool,
+          visible: true, locked: false,
+          isFrame: activeTool === "frame",
+        });
+        dispatch({ type: "SET_TOOL", tool: "move" });
+      }
+    }
+    setDragState({ kind: "none" });
+  }, [dragState, activeTool, addElement, dispatch]);
+
+  const handleElementDoubleClick = useCallback((e: React.MouseEvent, id: string) => {
+    const el = elements.find((el) => el.id === id);
+    if (el?.type === "text") {
+      setEditingTextId(id);
+    }
+  }, [elements]);
+
+  const handleTextChange = useCallback((id: string, val: string) => {
+    updateElement(id, { textContent: val });
+    setEditingTextId(null);
+  }, [updateElement]);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const first = selectedIds[0];
+    const el = first ? elements.find((el) => el.id === first) : null;
+    if (el) {
+      setContextMenu({ x: e.clientX, y: e.clientY, name: el.name });
+    }
+  }, [selectedIds, elements]);
+
+  // Drawing preview shape
+  const drawingPreview = (() => {
+    if (dragState.kind !== "drawing") return null;
+    const { startX, startY, currentX, currentY } = dragState;
+    const x = Math.min(startX, currentX);
+    const y = Math.min(startY, currentY);
+    const w = Math.abs(currentX - startX);
+    const h = Math.abs(currentY - startY);
+    if (w < 2 && h < 2) return null;
+
+    const style = { fill: "rgba(139,92,246,0.15)", stroke: "#8B5CF6", strokeWidth: 1, strokeDasharray: "4 2", pointerEvents: "none" as const };
+    if (activeTool === "ellipse") {
+      return <ellipse cx={x + w / 2} cy={y + h / 2} rx={w / 2} ry={h / 2} {...style} />;
+    }
+    if (activeTool === "line") {
+      return <line x1={startX} y1={startY} x2={currentX} y2={currentY} stroke="#8B5CF6" strokeWidth={2} strokeDasharray="4 2" style={{ pointerEvents: "none" }} />;
+    }
+    return <rect x={x} y={y} width={w} height={h} rx={8} {...style} />;
+  })();
+
+  // Cursor based on tool
+  const cursorMap: Record<string, string> = {
+    move: "default",
+    hand: "grab",
+    rectangle: "crosshair",
+    ellipse: "crosshair",
+    frame: "crosshair",
+    line: "crosshair",
+    text: "text",
+    image: "crosshair",
+    pen: "crosshair",
+    comment: "default",
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="flex-1 relative overflow-hidden bg-background"
+      onContextMenu={handleContextMenu}
+    >
       {/* Dot grid background */}
-      <div className="absolute inset-0 nova-dot-grid" />
+      <div className="absolute inset-0 nova-dot-grid pointer-events-none" />
 
       {/* Rulers */}
-      <div className="absolute top-0 left-8 right-0 h-6 bg-card/80 backdrop-blur-sm border-b border-border flex items-end px-2 z-10">
+      <div className="absolute top-0 left-8 right-0 h-6 bg-card/80 backdrop-blur-sm border-b border-border flex items-end px-2 z-10 pointer-events-none">
         {Array.from({ length: 20 }).map((_, i) => (
           <div key={i} className="flex-1 border-l border-border/20 relative">
             {i % 2 === 0 && (
-              <span className="absolute -top-0.5 left-1 text-[8px] text-muted-foreground/40 font-mono select-none">{i * 100}</span>
+              <span className="absolute -top-0.5 left-1 text-[8px] text-muted-foreground/40 font-mono select-none">
+                {Math.round((i * (svgWidth / 20)) / scale)}
+              </span>
             )}
           </div>
         ))}
       </div>
-      <div className="absolute top-6 left-0 bottom-0 w-6 bg-card/80 backdrop-blur-sm border-r border-border z-10">
+      <div className="absolute top-6 left-0 bottom-0 w-8 bg-card/80 backdrop-blur-sm border-r border-border z-10 pointer-events-none">
         {Array.from({ length: 15 }).map((_, i) => (
           <div key={i} className="h-16 border-t border-border/20 relative">
             {i % 2 === 0 && (
-              <span className="absolute top-1 left-0.5 text-[7px] text-muted-foreground/40 font-mono select-none">{i * 100}</span>
+              <span className="absolute top-1 left-0.5 text-[7px] text-muted-foreground/40 font-mono select-none">
+                {Math.round((i * (svgHeight / 15)) / scale)}
+              </span>
             )}
           </div>
         ))}
       </div>
 
-      {/* Canvas content area */}
-      <div
-        className="absolute inset-0 top-6 left-6 overflow-auto flex items-center justify-center"
-        style={{ transform: `scale(${zoom / 100})`, transformOrigin: "center center" }}
-      >
-        {/* Artboard */}
-        <div className="w-[1280px] h-[900px] bg-card rounded-xl shadow-2xl shadow-black/30 border border-border/50 relative">
-          {/* Frame label */}
-          <div className="absolute -top-7 left-0 flex items-center gap-2">
-            <span className="text-[11px] text-primary font-medium">Landing Page</span>
-            <span className="text-[10px] text-muted-foreground font-mono">1280 × 900</span>
-          </div>
+      {/* Canvas scroll area */}
+      <div className="absolute inset-0 top-6 left-8 overflow-auto">
+        <div
+          style={{
+            width: svgWidth * scale,
+            height: svgHeight * scale,
+            minWidth: "100%",
+            minHeight: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <svg
+            ref={svgRef}
+            width={svgWidth * scale}
+            height={svgHeight * scale}
+            viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+            style={{ cursor: cursorMap[activeTool] || "default", display: "block" }}
+            onPointerDown={handleCanvasPointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+          >
+            {/* Grid */}
+            {showGrid && (
+              <defs>
+                <pattern id="grid-small" width="8" height="8" patternUnits="userSpaceOnUse">
+                  <path d="M 8 0 L 0 0 0 8" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+                </pattern>
+                <pattern id="grid-large" width="80" height="80" patternUnits="userSpaceOnUse">
+                  <rect width="80" height="80" fill="url(#grid-small)" />
+                  <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+                </pattern>
+              </defs>
+            )}
+            {showGrid && (
+              <rect x={0} y={0} width={svgWidth} height={svgHeight} fill="url(#grid-large)" style={{ pointerEvents: "none" }} />
+            )}
 
-          {/* Mock landing page content */}
-          <div className="p-0 h-full flex flex-col">
-            {/* Nav bar */}
-            <div
-              onClick={() => handleLayerClick("nav-bar")}
-              onContextMenu={(e) => handleContextMenu(e, "nav-bar", "Navigation")}
-              className={`flex items-center justify-between px-8 py-4 border-b border-border/50 cursor-pointer transition-all hover:bg-primary/[0.02] ${
-                selectedLayer === "nav-bar" ? "ring-2 ring-primary/60 ring-inset bg-primary/[0.03]" : ""
-              }`}
+            {/* Artboard shadow */}
+            <filter id="artboard-shadow">
+              <feDropShadow dx="0" dy="8" stdDeviation="24" floodColor="rgba(0,0,0,0.6)" />
+            </filter>
+
+            {/* Artboard background */}
+            <rect
+              x={artX}
+              y={artY}
+              width={artboardWidth}
+              height={artboardHeight}
+              fill="#0a0a0f"
+              rx={12}
+              filter="url(#artboard-shadow)"
+            />
+
+            {/* Artboard label */}
+            <text
+              x={artX}
+              y={artY - 14}
+              fill="#8B5CF6"
+              fontSize={12}
+              fontFamily="Inter, sans-serif"
+              fontWeight="500"
+              style={{ userSelect: "none", pointerEvents: "none" }}
             >
-              <div
-                onClick={(e) => { e.stopPropagation(); handleLayerClick("logo"); }}
-                className={`flex items-center gap-2 transition-all ${selectedLayer === "logo" ? "ring-2 ring-primary rounded-md p-1 -m-1" : ""}`}
-              >
-                <div className="w-7 h-7 rounded-lg nova-gradient" />
-                <div className="w-20 h-3.5 rounded bg-foreground/20" />
-              </div>
-              <div className="flex items-center gap-6">
-                {["Features", "Pricing", "About"].map((link, i) => (
-                  <div
-                    key={link}
-                    onClick={(e) => { e.stopPropagation(); handleLayerClick(`link-${i + 1}`); }}
-                    className={`w-14 h-2.5 rounded bg-foreground/12 cursor-pointer hover:bg-foreground/20 transition-colors ${
-                      selectedLayer === `link-${i + 1}` ? "ring-2 ring-primary" : ""
-                    }`}
+              {artboardName}
+            </text>
+            <text
+              x={artX + artboardWidth / 2}
+              y={artY - 14}
+              fill="rgba(255,255,255,0.25)"
+              fontSize={10}
+              fontFamily="JetBrains Mono, monospace"
+              textAnchor="middle"
+              style={{ userSelect: "none", pointerEvents: "none" }}
+            >
+              {artboardWidth} × {artboardHeight}
+            </text>
+
+            {/* Clip artboard content */}
+            <defs>
+              <clipPath id="artboard-clip">
+                <rect x={artX} y={artY} width={artboardWidth} height={artboardHeight} rx={12} />
+              </clipPath>
+            </defs>
+
+            <g clipPath="url(#artboard-clip)">
+              {/* Translate elements from artboard-space to SVG-space */}
+              <g transform={`translate(${artX}, ${artY})`}>
+                {elements.map((el) => (
+                  <SvgElement
+                    key={el.id}
+                    el={el}
+                    isSelected={selectedIds.includes(el.id)}
+                    onPointerDown={handleElementPointerDown}
+                    onDoubleClick={handleElementDoubleClick}
+                    editingTextId={editingTextId}
+                    onTextChange={handleTextChange}
                   />
                 ))}
-                <div
-                  onClick={(e) => { e.stopPropagation(); handleLayerClick("cta-btn"); }}
-                  className={`w-24 h-9 rounded-xl nova-gradient cursor-pointer hover:opacity-90 transition-all ${
-                    selectedLayer === "cta-btn" ? "ring-2 ring-primary ring-offset-2 ring-offset-card" : ""
-                  }`}
-                />
-              </div>
-            </div>
 
-            {/* Hero */}
-            <div
-              onClick={() => handleLayerClick("hero-content")}
-              onContextMenu={(e) => handleContextMenu(e, "hero-content", "Hero Content")}
-              className={`flex-1 flex items-center px-16 gap-16 cursor-pointer transition-all hover:bg-primary/[0.02] ${
-                selectedLayer === "hero-content" ? "ring-2 ring-primary/40 ring-inset m-1 rounded-xl bg-primary/[0.02]" : ""
-              }`}
-            >
-              <div className="flex-1 space-y-6">
-                <div
-                  onClick={(e) => { e.stopPropagation(); handleLayerClick("headline"); }}
-                  onContextMenu={(e) => handleContextMenu(e, "headline", "Headline")}
-                  className={`space-y-2.5 cursor-pointer transition-all ${selectedLayer === "headline" ? "ring-2 ring-primary rounded-lg p-2 -m-2 bg-primary/[0.03]" : ""}`}
-                >
-                  <div className="w-[340px] h-9 rounded bg-foreground/18" />
-                  <div className="w-[280px] h-9 rounded bg-foreground/12" />
-                </div>
-                <div
-                  onClick={(e) => { e.stopPropagation(); handleLayerClick("subhead"); }}
-                  className={`space-y-2 cursor-pointer transition-all ${selectedLayer === "subhead" ? "ring-2 ring-primary rounded-lg p-2 -m-2" : ""}`}
-                >
-                  <div className="w-[300px] h-3 rounded bg-foreground/8" />
-                  <div className="w-[240px] h-3 rounded bg-foreground/8" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <div
-                    onClick={(e) => { e.stopPropagation(); handleLayerClick("hero-cta"); }}
-                    className={`w-40 h-12 rounded-xl nova-gradient cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-all ${
-                      selectedLayer === "hero-cta" ? "ring-2 ring-primary ring-offset-2 ring-offset-card" : ""
-                    }`}
+                {/* Drawing preview */}
+                {drawingPreview}
+
+                {/* Selection handles */}
+                {selectedElements.map((el) => (
+                  <SelectionHandles
+                    key={`sel-${el.id}`}
+                    el={el}
+                    onHandlePointerDown={handleHandlePointerDown}
                   />
-                  <div className="w-32 h-12 rounded-xl border border-border/50 bg-secondary/20 cursor-pointer hover:bg-secondary/30 transition-colors" />
-                </div>
-              </div>
-              <div
-                onClick={(e) => { e.stopPropagation(); handleLayerClick("hero-img"); }}
-                onContextMenu={(e) => handleContextMenu(e, "hero-img", "Hero Image")}
-                className={`w-[420px] h-[280px] rounded-2xl bg-secondary/30 border border-border/50 cursor-pointer transition-all hover:border-primary/20 ${
-                  selectedLayer === "hero-img" ? "ring-2 ring-primary shadow-lg shadow-primary/10" : ""
-                }`}
-              >
-                <div className="w-full h-full nova-dot-grid rounded-2xl flex items-center justify-center">
-                  <div className="text-center space-y-2">
-                    <div className="w-12 h-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center">
-                      <div className="w-6 h-6 rounded-md bg-primary/20" />
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">Hero Image</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Features section */}
-            <div
-              onClick={() => handleLayerClick("frame-features")}
-              onContextMenu={(e) => handleContextMenu(e, "frame-features", "Features Section")}
-              className={`px-16 py-14 border-t border-border/50 cursor-pointer transition-all hover:bg-primary/[0.02] ${
-                selectedLayer === "frame-features" ? "ring-2 ring-primary/40 ring-inset bg-primary/[0.02]" : ""
-              }`}
-            >
-              <div
-                onClick={(e) => { e.stopPropagation(); handleLayerClick("section-title"); }}
-                className={`w-56 h-5 rounded bg-foreground/12 mx-auto mb-10 cursor-pointer transition-all ${
-                  selectedLayer === "section-title" ? "ring-2 ring-primary" : ""
-                }`}
-              />
-              <div className="grid grid-cols-3 gap-6">
-                {[1, 2, 3].map((n) => (
-                  <div
-                    key={n}
-                    onClick={(e) => { e.stopPropagation(); handleLayerClick(`card-${n}`); }}
-                    onContextMenu={(e) => handleContextMenu(e, `card-${n}`, `Feature Card ${n}`)}
-                    className={`p-6 rounded-xl bg-secondary/20 border border-border/30 space-y-3 cursor-pointer transition-all hover:border-primary/15 hover:bg-primary/[0.03] ${
-                      selectedLayer === `card-${n}` ? "ring-2 ring-primary border-primary/30 bg-primary/[0.03] shadow-lg shadow-primary/5" : ""
-                    }`}
-                  >
-                    <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center">
-                      <div className="w-5 h-5 rounded-md bg-primary/30" />
-                    </div>
-                    <div className="w-28 h-3.5 rounded bg-foreground/15" />
-                    <div className="space-y-1.5">
-                      <div className="w-full h-2 rounded bg-foreground/6" />
-                      <div className="w-4/5 h-2 rounded bg-foreground/6" />
-                      <div className="w-3/5 h-2 rounded bg-foreground/6" />
-                    </div>
-                  </div>
                 ))}
-              </div>
-            </div>
-          </div>
 
-          {/* Selection handles */}
-          {selectedLayer && (
-            <>
-              {/* Smart guide lines */}
-              {selectedLayer === "headline" && (
-                <>
-                  <div className="absolute left-[62px] top-[140px] right-[62px] h-px bg-primary/30" style={{ pointerEvents: "none" }} />
-                  <div className="absolute left-[62px] top-0 w-px h-full bg-primary/10" style={{ pointerEvents: "none" }} />
-                </>
-              )}
-            </>
-          )}
+                {/* Multi-selection bounding box */}
+                {selectedElements.length > 1 && (() => {
+                  const xs = selectedElements.map(e => e.x);
+                  const ys = selectedElements.map(e => e.y);
+                  const x2s = selectedElements.map(e => e.x + e.width);
+                  const y2s = selectedElements.map(e => e.y + e.height);
+                  const bx = Math.min(...xs);
+                  const by = Math.min(...ys);
+                  const bw = Math.max(...x2s) - bx;
+                  const bh = Math.max(...y2s) - by;
+                  return (
+                    <rect
+                      x={bx - 4}
+                      y={by - 4}
+                      width={bw + 8}
+                      height={bh + 8}
+                      fill="none"
+                      stroke="#8B5CF6"
+                      strokeWidth={1}
+                      strokeDasharray="4 2"
+                      rx={4}
+                      style={{ pointerEvents: "none" }}
+                    />
+                  );
+                })()}
+              </g>
+            </g>
+
+            {/* Artboard border */}
+            <rect
+              x={artX}
+              y={artY}
+              width={artboardWidth}
+              height={artboardHeight}
+              fill="none"
+              stroke="rgba(255,255,255,0.08)"
+              strokeWidth={1}
+              rx={12}
+              style={{ pointerEvents: "none" }}
+            />
+          </svg>
         </div>
       </div>
 
       {/* Canvas AI command bar */}
-      <CanvasAIBar selectedLayer={selectedLayer} onSendPrompt={handleCanvasPrompt} />
+      <CanvasAIBar selectedLayer={selectedIds[0] || null} onSendPrompt={() => onOpenAI?.()} />
 
       {/* Context AI menu */}
       {contextMenu && (
         <ContextAIMenu
           x={contextMenu.x}
           y={contextMenu.y}
-          layerName={contextMenu.layer}
-          onAction={(action) => { onOpenAI?.(); }}
+          layerName={contextMenu.name}
+          onAction={() => { onOpenAI?.(); setContextMenu(null); }}
           onClose={() => setContextMenu(null)}
         />
       )}
 
       {/* Zoom controls */}
       <div className="absolute bottom-4 right-4 flex items-center gap-1 nova-glass rounded-xl p-1 z-20">
-        <button onClick={() => onZoomChange(Math.max(25, zoom - 25))} className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors">
+        <button
+          onClick={() => dispatch({ type: "SET_ZOOM", zoom: state.zoom - 10 })}
+          className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+        >
           <ZoomOut className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
-        <span className="text-[10px] font-mono text-muted-foreground px-2 min-w-[3rem] text-center">{zoom}%</span>
-        <button onClick={() => onZoomChange(Math.min(400, zoom + 25))} className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors">
+        <span className="text-[10px] font-mono text-muted-foreground px-2 min-w-[3rem] text-center">
+          {zoom}%
+        </span>
+        <button
+          onClick={() => dispatch({ type: "SET_ZOOM", zoom: state.zoom + 10 })}
+          className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+        >
           <ZoomIn className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
         <div className="w-px h-4 bg-border mx-0.5" />
-        <button onClick={() => onZoomChange(100)} className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors">
+        <button
+          onClick={() => dispatch({ type: "SET_ZOOM", zoom: 70 })}
+          className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+        >
           <Maximize className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
+        <div className="w-px h-4 bg-border mx-0.5" />
+        <button
+          onClick={() => dispatch({ type: "TOGGLE_GRID" })}
+          className={`p-1.5 rounded-lg transition-colors ${showGrid ? "text-primary bg-primary/10" : "text-muted-foreground hover:bg-secondary/50"}`}
+          title="Toggle grid"
+        >
+          <Grid3X3 className="w-3.5 h-3.5" />
+        </button>
       </div>
+
+      {/* Tool hints */}
+      {activeTool !== "move" && activeTool !== "hand" && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/90 border border-border text-xs text-muted-foreground z-20 pointer-events-none">
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+          {activeTool === "text" ? "Click to place text" : `Click and drag to draw ${activeTool}`}
+          <span className="ml-1 px-1.5 py-0.5 rounded bg-secondary text-[10px]">Esc</span>
+          to cancel
+        </div>
+      )}
     </div>
   );
 };

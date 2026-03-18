@@ -5,7 +5,7 @@ import { Sparkles, X, ArrowRight, ArrowLeft, Wand2, Zap, Layers, Check } from "l
 interface Props {
   open: boolean;
   onClose: () => void;
-  onGenerate: () => void;
+  onGenerate: (prompt?: string) => void;
 }
 
 const projectTypes = [
@@ -55,7 +55,7 @@ const AIGenerationModal = ({ open, onClose, onGenerate }: Props) => {
         if (p >= 100) {
           clearInterval(interval);
           setTimeout(() => {
-            onGenerate();
+            onGenerate(prompt || selectedType || undefined);
             onClose();
           }, 500);
           return 100;
