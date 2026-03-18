@@ -29,6 +29,21 @@ export interface CanvasElement {
   // Frame / group
   parentId?: string;
   isFrame?: boolean;
+  // Effects
+  shadowColor?: string;
+  shadowX?: number;
+  shadowY?: number;
+  shadowBlur?: number;
+  shadowSpread?: number;
+  blur?: number;
+  // Prototype
+  linkTo?: string; // page name to navigate to on click
+}
+
+export interface PageState {
+  id: string;
+  name: string;
+  elements: CanvasElement[];
 }
 
 interface CanvasState {
@@ -45,6 +60,9 @@ interface CanvasState {
   future: CanvasElement[][];
   showGrid: boolean;
   showRulers: boolean;
+  clipboard: CanvasElement[];
+  pages: PageState[];
+  currentPageId: string;
 }
 
 type CanvasAction =
@@ -62,14 +80,29 @@ type CanvasAction =
   | { type: "TOGGLE_VISIBLE"; id: string }
   | { type: "TOGGLE_LOCK"; id: string }
   | { type: "SET_ARTBOARD_NAME"; name: string }
+  | { type: "SET_ARTBOARD_SIZE"; width: number; height: number }
   | { type: "TOGGLE_GRID" }
-  | { type: "LOAD_ELEMENTS"; elements: CanvasElement[] };
+  | { type: "LOAD_ELEMENTS"; elements: CanvasElement[] }
+  | { type: "COPY_ELEMENTS"; ids: string[] }
+  | { type: "PASTE_ELEMENTS"; offsetX?: number; offsetY?: number }
+  | { type: "DUPLICATE_ELEMENTS"; ids: string[] }
+  | { type: "ADD_PAGE"; page: PageState }
+  | { type: "REMOVE_PAGE"; id: string }
+  | { type: "RENAME_PAGE"; id: string; name: string }
+  | { type: "SWITCH_PAGE"; id: string }
+  | { type: "LOAD_ALL_PAGES"; pages: PageState[]; currentPageId: string };
 
 const MAX_HISTORY = 50;
 
 function pushHistory(past: CanvasElement[][], elements: CanvasElement[]): CanvasElement[][] {
   const next = [...past, elements];
   return next.length > MAX_HISTORY ? next.slice(next.length - MAX_HISTORY) : next;
+}
+
+let globalIdCounter = 2000;
+function makeId() {
+  globalIdCounter += 1;
+  return `el-${globalIdCounter}`;
 }
 
 function canvasReducer(state: CanvasState, action: CanvasAction): CanvasState {
@@ -183,6 +216,9 @@ function canvasReducer(state: CanvasState, action: CanvasAction): CanvasState {
     case "SET_ARTBOARD_NAME":
       return { ...state, artboardName: action.name };
 
+    case "SET_ARTBOARD_SIZE":
+      return { ...state, artboardWidth: action.width, artboardHeight: action.height };
+
     case "TOGGLE_GRID":
       return { ...state, showGrid: !state.showGrid };
 
@@ -194,6 +230,123 @@ function canvasReducer(state: CanvasState, action: CanvasAction): CanvasState {
         past: [],
         future: [],
       };
+
+    case "COPY_ELEMENTS": {
+      const ids = new Set(action.ids);
+      const copied = state.elements.filter((el) => ids.has(el.id));
+      return { ...state, clipboard: copied };
+    }
+
+    case "PASTE_ELEMENTS": {
+      if (state.clipboard.length === 0) return state;
+      const offsetX = action.offsetX ?? 24;
+      const offsetY = action.offsetY ?? 24;
+      const newEls = state.clipboard.map((el) => ({
+        ...el,
+        id: makeId(),
+        x: el.x + offsetX,
+        y: el.y + offsetY,
+        name: `${el.name} Copy`,
+      }));
+      return {
+        ...state,
+        elements: [...state.elements, ...newEls],
+        selectedIds: newEls.map((e) => e.id),
+        past: pushHistory(state.past, state.elements),
+        future: [],
+      };
+    }
+
+    case "DUPLICATE_ELEMENTS": {
+      const ids = new Set(action.ids);
+      const toDup = state.elements.filter((el) => ids.has(el.id));
+      const newEls = toDup.map((el) => ({
+        ...el,
+        id: makeId(),
+        x: el.x + 24,
+        y: el.y + 24,
+        name: `${el.name} Copy`,
+      }));
+      return {
+        ...state,
+        elements: [...state.elements, ...newEls],
+        selectedIds: newEls.map((e) => e.id),
+        past: pushHistory(state.past, state.elements),
+        future: [],
+      };
+    }
+
+    case "ADD_PAGE": {
+      // Save current page elements first
+      const updatedPages = state.pages.map((p) =>
+        p.id === state.currentPageId ? { ...p, elements: state.elements } : p
+      );
+      return {
+        ...state,
+        pages: [...updatedPages, action.page],
+        elements: action.page.elements,
+        currentPageId: action.page.id,
+        selectedIds: [],
+        past: [],
+        future: [],
+      };
+    }
+
+    case "REMOVE_PAGE": {
+      if (state.pages.length <= 1) return state;
+      const remaining = state.pages.filter((p) => p.id !== action.id);
+      const newCurrent = state.currentPageId === action.id ? remaining[0] : state.pages.find(p => p.id === state.currentPageId)!;
+      return {
+        ...state,
+        pages: remaining,
+        currentPageId: newCurrent.id,
+        elements: newCurrent.elements,
+        selectedIds: [],
+        past: [],
+        future: [],
+      };
+    }
+
+    case "RENAME_PAGE":
+      return {
+        ...state,
+        pages: state.pages.map((p) => p.id === action.id ? { ...p, name: action.name } : p),
+        artboardName: state.currentPageId === action.id ? action.name : state.artboardName,
+      };
+
+    case "SWITCH_PAGE": {
+      if (action.id === state.currentPageId) return state;
+      // Save current page elements
+      const updatedPages = state.pages.map((p) =>
+        p.id === state.currentPageId ? { ...p, elements: state.elements } : p
+      );
+      const targetPage = updatedPages.find((p) => p.id === action.id);
+      if (!targetPage) return state;
+      return {
+        ...state,
+        pages: updatedPages,
+        elements: targetPage.elements,
+        currentPageId: action.id,
+        artboardName: targetPage.name,
+        selectedIds: [],
+        past: [],
+        future: [],
+      };
+    }
+
+    case "LOAD_ALL_PAGES": {
+      const currentPage = action.pages.find(p => p.id === action.currentPageId) || action.pages[0];
+      return {
+        ...state,
+        pages: action.pages,
+        currentPageId: currentPage.id,
+        elements: currentPage.elements,
+        artboardName: currentPage.name,
+        selectedIds: [],
+        past: [],
+        future: [],
+      };
+    }
 
     default:
       return state;
@@ -326,6 +479,12 @@ const defaultElements: CanvasElement[] = [
   },
 ];
 
+const defaultPage: PageState = {
+  id: "page-1",
+  name: "Landing Page",
+  elements: defaultElements,
+};
+
 interface CanvasContextValue {
   state: CanvasState;
   dispatch: React.Dispatch<CanvasAction>;
@@ -342,35 +501,92 @@ interface CanvasContextValue {
   selectedElements: CanvasElement[];
   getElement: (id: string) => CanvasElement | undefined;
   nextId: () => string;
+  copySelected: () => void;
+  paste: () => void;
+  duplicateSelected: () => void;
+  addPage: (name: string) => void;
+  removePage: (id: string) => void;
+  renamePage: (id: string, name: string) => void;
+  switchPage: (id: string) => void;
 }
 
 const CanvasContext = createContext<CanvasContextValue | null>(null);
 
 let idCounter = 1000;
 
-export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(canvasReducer, {
-    elements: defaultElements,
-    selectedIds: [],
-    activeTool: "move",
-    zoom: 70,
-    panX: 0,
-    panY: 0,
-    artboardWidth: 1280,
-    artboardHeight: 900,
-    artboardName: "Landing Page",
-    past: [],
-    future: [],
-    showGrid: true,
-    showRulers: true,
-  });
-
+export const CanvasProvider: React.FC<{ children: React.ReactNode; projectKey?: string }> = ({ children, projectKey }) => {
   const counterRef = useRef(idCounter);
 
   const nextId = useCallback(() => {
     counterRef.current += 1;
     return `el-${counterRef.current}`;
   }, []);
+
+  const getInitialState = (): CanvasState => {
+    if (projectKey) {
+      try {
+        const saved = localStorage.getItem(`nova-canvas-${projectKey}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.pages && parsed.currentPageId) {
+            const currentPage = parsed.pages.find((p: PageState) => p.id === parsed.currentPageId) || parsed.pages[0];
+            return {
+              elements: currentPage.elements || [],
+              selectedIds: [],
+              activeTool: "move",
+              zoom: 70,
+              panX: 0,
+              panY: 0,
+              artboardWidth: parsed.artboardWidth || 1280,
+              artboardHeight: parsed.artboardHeight || 900,
+              artboardName: currentPage.name,
+              past: [],
+              future: [],
+              showGrid: true,
+              showRulers: true,
+              clipboard: [],
+              pages: parsed.pages,
+              currentPageId: parsed.currentPageId,
+            };
+          }
+        }
+      } catch {}
+    }
+    return {
+      elements: defaultElements,
+      selectedIds: [],
+      activeTool: "move",
+      zoom: 70,
+      panX: 0,
+      panY: 0,
+      artboardWidth: 1280,
+      artboardHeight: 900,
+      artboardName: "Landing Page",
+      past: [],
+      future: [],
+      showGrid: true,
+      showRulers: true,
+      clipboard: [],
+      pages: [defaultPage],
+      currentPageId: "page-1",
+    };
+  };
+
+  const [state, dispatch] = useReducer(canvasReducer, undefined, getInitialState);
+
+  // Auto-save to localStorage
+  React.useEffect(() => {
+    if (!projectKey) return;
+    const toSave = {
+      pages: state.pages.map((p) =>
+        p.id === state.currentPageId ? { ...p, elements: state.elements } : p
+      ),
+      currentPageId: state.currentPageId,
+      artboardWidth: state.artboardWidth,
+      artboardHeight: state.artboardHeight,
+    };
+    localStorage.setItem(`nova-canvas-${projectKey}`, JSON.stringify(toSave));
+  }, [state.elements, state.pages, state.currentPageId, state.artboardWidth, state.artboardHeight, projectKey]);
 
   const addElement = useCallback((el: Omit<CanvasElement, "id">) => {
     dispatch({ type: "ADD_ELEMENT", element: { ...el, id: nextId() } });
@@ -411,6 +627,42 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const undo = useCallback(() => dispatch({ type: "UNDO" }), []);
   const redo = useCallback(() => dispatch({ type: "REDO" }), []);
 
+  const copySelected = useCallback(() => {
+    if (state.selectedIds.length > 0) {
+      dispatch({ type: "COPY_ELEMENTS", ids: state.selectedIds });
+    }
+  }, [state.selectedIds]);
+
+  const paste = useCallback(() => {
+    dispatch({ type: "PASTE_ELEMENTS" });
+  }, []);
+
+  const duplicateSelected = useCallback(() => {
+    if (state.selectedIds.length > 0) {
+      dispatch({ type: "DUPLICATE_ELEMENTS", ids: state.selectedIds });
+    }
+  }, [state.selectedIds]);
+
+  const addPage = useCallback((name: string) => {
+    const id = `page-${Date.now()}`;
+    dispatch({
+      type: "ADD_PAGE",
+      page: { id, name, elements: [] },
+    });
+  }, []);
+
+  const removePage = useCallback((id: string) => {
+    dispatch({ type: "REMOVE_PAGE", id });
+  }, []);
+
+  const renamePage = useCallback((id: string, name: string) => {
+    dispatch({ type: "RENAME_PAGE", id, name });
+  }, []);
+
+  const switchPage = useCallback((id: string) => {
+    dispatch({ type: "SWITCH_PAGE", id });
+  }, []);
+
   const selectedElements = state.elements.filter((el) => state.selectedIds.includes(el.id));
   const getElement = (id: string) => state.elements.find((el) => el.id === id);
 
@@ -432,6 +684,13 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         selectedElements,
         getElement,
         nextId,
+        copySelected,
+        paste,
+        duplicateSelected,
+        addPage,
+        removePage,
+        renamePage,
+        switchPage,
       }}
     >
       {children}
