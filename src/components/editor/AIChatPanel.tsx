@@ -676,7 +676,7 @@ export default function AIChatPanel({ onClose }: Props) {
                 ))}
                 <button
                   onClick={() => setShowQuickActions(false)}
-                  className="text-[9px] text-muted-foreground/40 hover:text-muted-foreground transition-colors ml-auto"
+                  className="text-[9px] text-muted-foreground hover:text-foreground transition-colors ml-auto"
                 >
                   ×
                 </button>
