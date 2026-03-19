@@ -38,7 +38,7 @@ const PropInput = ({
         min={min}
         max={max}
         step={step}
-        className="w-full h-7 px-2 rounded-md bg-secondary/30 border border-border text-xs font-mono text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+        className="w-full h-7 px-2 rounded-md bg-secondary border border-border text-xs font-mono text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
       />
       {suffix && (
         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">
