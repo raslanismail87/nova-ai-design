@@ -45,11 +45,11 @@ function CommandPalette({ onClose, commands }: { onClose: () => void; commands: 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[18vh] bg-black/60 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-[18vh] bg-foreground/30 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="w-[520px] rounded-2xl bg-card border border-border/60 shadow-2xl shadow-black/60 overflow-hidden animate-slide-down border-shine noise-overlay"
+        className="w-[520px] rounded-2xl bg-card border border-border/60 shadow-2xl shadow-foreground/10 overflow-hidden animate-slide-down border-shine noise-overlay"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}

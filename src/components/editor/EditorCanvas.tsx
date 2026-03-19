@@ -668,11 +668,11 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
             {showGrid && (
               <defs>
                 <pattern id="grid-small" width="8" height="8" patternUnits="userSpaceOnUse">
-                  <path d="M 8 0 L 0 0 0 8" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+                  <path d="M 8 0 L 0 0 0 8" fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="0.5" />
                 </pattern>
                 <pattern id="grid-large" width="80" height="80" patternUnits="userSpaceOnUse">
                   <rect width="80" height="80" fill="url(#grid-small)" />
-                  <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+                  <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
                 </pattern>
               </defs>
             )}
@@ -682,7 +682,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
 
             {/* Artboard shadow */}
             <filter id="artboard-shadow">
-              <feDropShadow dx="0" dy="8" stdDeviation="24" floodColor="rgba(0,0,0,0.6)" />
+              <feDropShadow dx="0" dy="8" stdDeviation="24" floodColor="rgba(0,0,0,0.12)" />
             </filter>
 
             {/* Artboard background */}
@@ -691,7 +691,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
               y={artY}
               width={artboardWidth}
               height={artboardHeight}
-              fill="#0a0a0f"
+              fill="#ffffff"
               rx={4}
               filter="url(#artboard-shadow)"
             />
@@ -711,7 +711,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
             <text
               x={artX + artboardWidth / 2}
               y={artY - 14}
-              fill="rgba(255,255,255,0.25)"
+              fill="rgba(0,0,0,0.3)"
               fontSize={10}
               fontFamily="JetBrains Mono, monospace"
               textAnchor="middle"
@@ -789,7 +789,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
               width={artboardWidth}
               height={artboardHeight}
               fill="none"
-              stroke="rgba(255,255,255,0.08)"
+              stroke="rgba(0,0,0,0.1)"
               strokeWidth={1}
               rx={4}
               style={{ pointerEvents: "none" }}
@@ -827,7 +827,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
       <div className="absolute bottom-4 right-4 flex items-center gap-0.5 nova-glass rounded-xl p-1 z-20">
         <button
           onClick={() => dispatch({ type: "SET_ZOOM", zoom: state.zoom - 10 })}
-          className="p-1.5 rounded-lg hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-100"
+          className="p-1.5 rounded-lg hover:bg-foreground/[0.06] active:bg-foreground/[0.1] transition-all duration-100"
           title="Zoom out (Ctrl −)"
         >
           <ZoomOut className="w-3.5 h-3.5 text-muted-foreground/70" />
@@ -845,7 +845,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         </select>
         <button
           onClick={() => dispatch({ type: "SET_ZOOM", zoom: state.zoom + 10 })}
-          className="p-1.5 rounded-lg hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-100"
+          className="p-1.5 rounded-lg hover:bg-foreground/[0.06] active:bg-foreground/[0.1] transition-all duration-100"
           title="Zoom in (Ctrl +)"
         >
           <ZoomIn className="w-3.5 h-3.5 text-muted-foreground/70" />
@@ -853,7 +853,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         <div className="w-px h-4 bg-border/50 mx-0.5" />
         <button
           onClick={() => dispatch({ type: "SET_ZOOM", zoom: 100 })}
-          className="p-1.5 rounded-lg hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-100"
+          className="p-1.5 rounded-lg hover:bg-foreground/[0.06] active:bg-foreground/[0.1] transition-all duration-100"
           title="Fit to screen"
         >
           <Maximize className="w-3.5 h-3.5 text-muted-foreground/70" />
@@ -861,7 +861,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         <div className="w-px h-4 bg-border/50 mx-0.5" />
         <button
           onClick={() => dispatch({ type: "TOGGLE_GRID" })}
-          className={`p-1.5 rounded-lg transition-all duration-100 ${showGrid ? "text-primary bg-primary/10" : "text-muted-foreground/70 hover:bg-white/[0.06]"}`}
+          className={`p-1.5 rounded-lg transition-all duration-100 ${showGrid ? "text-primary bg-primary/10" : "text-muted-foreground/70 hover:bg-foreground/[0.06]"}`}
           title="Toggle grid (⌘')"
         >
           <Grid3X3 className="w-3.5 h-3.5" />

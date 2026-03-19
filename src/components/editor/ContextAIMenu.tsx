@@ -33,7 +33,7 @@ const ContextAIMenu = ({ x, y, layerName, onAction, onClose }: Props) => {
       >
         <div className="w-[200px] nova-glass rounded-[10px] py-1.5 overflow-hidden">
           {/* Layer header */}
-          <div className="px-3 pt-1 pb-2.5 border-b border-white/6">
+          <div className="px-3 pt-1 pb-2.5 border-b border-border/50">
             <p className="text-[10px] text-muted-foreground/55 mb-0.5 uppercase tracking-wider font-medium">Element</p>
             <p className="text-[13px] font-medium text-foreground/85 truncate leading-tight">{layerName}</p>
           </div>
@@ -47,7 +47,7 @@ const ContextAIMenu = ({ x, y, layerName, onAction, onClose }: Props) => {
                 className={`w-full flex items-center gap-2.5 px-3 py-[7px] text-[13px] transition-colors duration-75 ${
                   i === 0
                     ? "text-primary/90 hover:bg-primary/8 hover:text-primary"
-                    : "text-foreground/70 hover:bg-white/5 hover:text-foreground/90"
+                    : "text-foreground/70 hover:bg-foreground/[0.05] hover:text-foreground/90"
                 }`}
               >
                 <action.icon className={`w-3.5 h-3.5 shrink-0 ${i === 0 ? "text-primary/80" : "text-muted-foreground/60"}`} />
@@ -60,12 +60,12 @@ const ContextAIMenu = ({ x, y, layerName, onAction, onClose }: Props) => {
           </div>
 
           {/* Edit actions */}
-          <div className="border-t border-white/6 py-1">
+          <div className="border-t border-border/50 py-1">
             {editActions.map((action) => (
               <button
                 key={action.label}
                 onClick={() => { onAction(action.label); onClose(); }}
-                className="w-full flex items-center gap-2.5 px-3 py-[7px] text-[13px] text-foreground/60 hover:bg-white/5 hover:text-foreground/85 transition-colors duration-75"
+                className="w-full flex items-center gap-2.5 px-3 py-[7px] text-[13px] text-foreground/60 hover:bg-foreground/[0.05] hover:text-foreground/85 transition-colors duration-75"
               >
                 <action.icon className="w-3.5 h-3.5 shrink-0 text-muted-foreground/50" />
                 <span className="flex-1 text-left">{action.label}</span>
@@ -74,7 +74,7 @@ const ContextAIMenu = ({ x, y, layerName, onAction, onClose }: Props) => {
           </div>
 
           {/* Destructive */}
-          <div className="border-t border-white/6 py-1">
+          <div className="border-t border-border/50 py-1">
             <button
               onClick={() => { onAction("delete"); onClose(); }}
               className="w-full flex items-center gap-2.5 px-3 py-[7px] text-[13px] text-destructive/70 hover:text-destructive hover:bg-destructive/6 transition-colors duration-75"

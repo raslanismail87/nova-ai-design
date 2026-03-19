@@ -58,7 +58,7 @@ const LayerRow = ({
         className={`group flex items-center h-7 gap-1.5 text-[12px] transition-colors duration-75 cursor-pointer select-none relative ${
           isSelected
             ? "bg-primary/10 text-foreground"
-            : "text-muted-foreground/75 hover:bg-white/4 hover:text-foreground/85"
+            : "text-muted-foreground/75 hover:bg-foreground/[0.04] hover:text-foreground/85"
         } ${!el.visible ? "opacity-35" : ""}`}
         style={{ paddingLeft: `${depth * 14 + 10}px`, paddingRight: 8 }}
         onClick={(e) => !isRenaming && onSelect(el.id, e.shiftKey || e.metaKey || e.ctrlKey)}
@@ -98,7 +98,7 @@ const LayerRow = ({
           <button
             title={el.visible ? "Hide" : "Show"}
             onClick={(e) => { e.stopPropagation(); dispatch({ type: "TOGGLE_VISIBLE", id: el.id }); }}
-            className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/8 transition-colors duration-75"
+            className="w-5 h-5 flex items-center justify-center rounded hover:bg-foreground/[0.08] transition-colors duration-75"
           >
             {el.visible
               ? <Eye className="w-2.5 h-2.5 text-muted-foreground/60" />
@@ -108,7 +108,7 @@ const LayerRow = ({
           <button
             title={el.locked ? "Unlock" : "Lock"}
             onClick={(e) => { e.stopPropagation(); dispatch({ type: "TOGGLE_LOCK", id: el.id }); }}
-            className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/8 transition-colors duration-75"
+            className="w-5 h-5 flex items-center justify-center rounded hover:bg-foreground/[0.08] transition-colors duration-75"
           >
             {el.locked
               ? <Lock className="w-2.5 h-2.5 text-muted-foreground/60" />
@@ -282,7 +282,7 @@ export default function EditorLeftSidebar() {
             <button
               title="Add rectangle"
               onClick={() => handleAddQuick("rectangle")}
-              className="w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-white/6 text-muted-foreground/60 hover:text-foreground/80 transition-colors duration-75"
+              className="w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-foreground/[0.06] text-muted-foreground/60 hover:text-foreground/80 transition-colors duration-75"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
@@ -391,11 +391,11 @@ export default function EditorLeftSidebar() {
                 { name: "Success", color: "#10B981" },
                 { name: "Warning", color: "#F59E0B" },
                 { name: "Danger", color: "#EF4444" },
-                { name: "Background", color: "#0a0a0f" },
-                { name: "Surface", color: "#1a1a24" },
-                { name: "Border", color: "rgba(255,255,255,0.08)" },
-                { name: "Text Primary", color: "#F2F2F2" },
-                { name: "Text Muted", color: "#888" },
+                { name: "Background", color: "#FAFAFA" },
+                { name: "Surface", color: "#F0F0F5" },
+                { name: "Border", color: "rgba(0,0,0,0.1)" },
+                { name: "Text Primary", color: "#1A1A2E" },
+                { name: "Text Muted", color: "#6B7280" },
               ].map(({ name, color }) => (
                 <button
                   key={name}
@@ -414,7 +414,7 @@ export default function EditorLeftSidebar() {
                   title={`Click to apply to selected, or copy color value`}
                 >
                   <div
-                    className="w-5 h-5 rounded-md shrink-0 border border-white/10"
+                    className="w-5 h-5 rounded-md shrink-0 border border-border"
                     style={{ background: color }}
                   />
                   <span className="flex-1 text-xs text-muted-foreground group-hover:text-foreground transition-colors text-left">{name}</span>

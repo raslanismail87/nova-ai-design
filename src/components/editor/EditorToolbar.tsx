@@ -123,7 +123,7 @@ export default function EditorToolbar({
           onClick={undo}
           disabled={!canUndo}
           title="Undo (⌘Z)"
-          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${canUndo ? "text-muted-foreground/60 hover:text-foreground/80 hover:bg-white/[0.05] active:bg-white/[0.08]" : "text-muted-foreground/20 cursor-not-allowed"}`}
+          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${canUndo ? "text-muted-foreground/60 hover:text-foreground/80 hover:bg-foreground/[0.05] active:bg-foreground/[0.08]" : "text-muted-foreground/20 cursor-not-allowed"}`}
         >
           <Undo2 className="w-3.5 h-3.5" />
         </button>
@@ -131,7 +131,7 @@ export default function EditorToolbar({
           onClick={redo}
           disabled={!canRedo}
           title="Redo (⌘⇧Z)"
-          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${canRedo ? "text-muted-foreground/60 hover:text-foreground/80 hover:bg-white/[0.05] active:bg-white/[0.08]" : "text-muted-foreground/20 cursor-not-allowed"}`}
+          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${canRedo ? "text-muted-foreground/60 hover:text-foreground/80 hover:bg-foreground/[0.05] active:bg-foreground/[0.08]" : "text-muted-foreground/20 cursor-not-allowed"}`}
         >
           <Redo2 className="w-3.5 h-3.5" />
         </button>
@@ -151,7 +151,7 @@ export default function EditorToolbar({
               className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${
                 activeTool === tool.id
                   ? "bg-primary/12 text-primary shadow-sm shadow-primary/5"
-                  : "text-muted-foreground/50 hover:text-foreground/80 hover:bg-white/[0.05] active:bg-white/[0.08]"
+                  : "text-muted-foreground/50 hover:text-foreground/80 hover:bg-foreground/[0.05] active:bg-foreground/[0.08]"
               }`}
               title={`${tool.id.charAt(0).toUpperCase() + tool.id.slice(1)} (${tool.shortcut})`}
             >

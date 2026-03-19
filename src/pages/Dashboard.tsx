@@ -196,7 +196,7 @@ export default function Dashboard() {
 
         {/* Workspace switcher */}
         <div className="px-2 mb-1.5">
-          <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] hover:bg-white/[0.04] text-sm transition-all duration-150">
+          <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] hover:bg-foreground/[0.04] text-sm transition-all duration-150">
             <div className="w-4 h-4 rounded-[4px] bg-primary/15 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">A</div>
             <span className="flex-1 text-left text-[13px] text-foreground/80">Acme Studio</span>
             <ChevronDown className="w-3 h-3 text-muted-foreground/50" />
@@ -211,8 +211,8 @@ export default function Dashboard() {
               onClick={() => setActiveNav(item.id)}
               className={`w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[6px] text-[13px] transition-all duration-150 ${
                 activeNav === item.id
-                  ? "bg-white/[0.06] text-foreground font-medium shadow-sm shadow-black/10"
-                  : "text-muted-foreground hover:text-foreground/80 hover:bg-white/[0.03]"
+                  ? "bg-foreground/[0.06] text-foreground font-medium shadow-sm shadow-foreground/5"
+                  : "text-muted-foreground hover:text-foreground/80 hover:bg-foreground/[0.03]"
               }`}
             >
               <item.icon
@@ -232,7 +232,7 @@ export default function Dashboard() {
 
         {/* Bottom */}
         <div className="p-2 border-t border-border/40">
-          <button className="w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[6px] text-[13px] text-muted-foreground hover:text-foreground/80 hover:bg-white/[0.03] transition-all duration-150">
+          <button className="w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[6px] text-[13px] text-muted-foreground hover:text-foreground/80 hover:bg-foreground/[0.03] transition-all duration-150">
             <Settings className="w-3.5 h-3.5 text-muted-foreground/50" />
             Settings
           </button>
@@ -356,7 +356,7 @@ export default function Dashboard() {
 
                   {/* Card info */}
                   <button
-                    className="w-full text-left px-3.5 py-3 space-y-2 hover:bg-white/2 transition-colors duration-100 rounded-b-[10px]"
+                    className="w-full text-left px-3.5 py-3 space-y-2 hover:bg-foreground/[0.02] transition-colors duration-100 rounded-b-[10px]"
                     onClick={() => openProject(project)}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -404,7 +404,7 @@ export default function Dashboard() {
               <button
                 key={label}
                 onClick={action}
-                className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[13px] text-foreground/80 hover:bg-white/6 hover:text-foreground transition-colors duration-75"
+                className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[13px] text-foreground/80 hover:bg-foreground/[0.06] hover:text-foreground transition-colors duration-75"
               >
                 <Icon className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
                 {label}
@@ -425,11 +425,11 @@ export default function Dashboard() {
       {/* ── New Project Modal ────────────────────────────────────── */}
       {showNewModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 backdrop-blur-md"
           onClick={() => setShowNewModal(false)}
         >
           <div
-            className="bg-card border border-border/50 rounded-2xl p-5 w-[360px] shadow-2xl shadow-black/50 animate-scale-in border-shine noise-overlay"
+            className="bg-card border border-border/50 rounded-2xl p-5 w-[360px] shadow-2xl shadow-foreground/10 animate-scale-in border-shine noise-overlay"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">

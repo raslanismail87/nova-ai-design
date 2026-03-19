@@ -68,14 +68,14 @@ const AIGenerationModal = ({ open, onClose, onGenerate }: Props) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-2xl" onClick={onClose} />
+      <div className="absolute inset-0 bg-background/70 backdrop-blur-2xl" onClick={onClose} />
 
       {/* Modal */}
       <div className="relative w-full max-w-2xl mx-4 animate-fade-in">
         {/* Glow effect */}
         <div className="absolute -inset-1 rounded-3xl nova-gradient opacity-20 blur-xl" />
 
-        <div className="relative rounded-2xl border border-border/50 bg-card shadow-2xl shadow-black/50 overflow-hidden noise-overlay border-shine">
+        <div className="relative rounded-2xl border border-border/50 bg-card shadow-2xl shadow-foreground/10 overflow-hidden noise-overlay border-shine">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <div className="flex items-center gap-3">

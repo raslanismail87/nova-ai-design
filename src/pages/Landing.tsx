@@ -35,7 +35,7 @@ const Landing = () => {
             {["Features", "Pricing", "Docs"].map((item) => (
               <button
                 key={item}
-                className="px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-white/4 transition-all duration-150"
+                className="px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] transition-all duration-150"
               >
                 {item}
               </button>
@@ -146,7 +146,7 @@ const Landing = () => {
                     <div className="w-full border-t border-border/50" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="px-3 bg-[hsl(240_6%_8%)] text-muted-foreground/70">or continue with email</span>
+                    <span className="px-3 bg-card text-muted-foreground/70">or continue with email</span>
                   </div>
                 </div>
 
