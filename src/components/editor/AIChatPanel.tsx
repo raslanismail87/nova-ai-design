@@ -668,7 +668,7 @@ export default function AIChatPanel({ onClose }: Props) {
                   <button
                     key={a.label}
                     onClick={() => handleSend(a.prompt)}
-                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-secondary/30 border border-border/40 text-[10px] text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/5 transition-all"
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-secondary border border-border text-[10px] text-foreground/70 hover:text-foreground hover:border-primary/40 hover:bg-primary/10 transition-all"
                   >
                     <a.icon className="w-2.5 h-2.5 text-primary" />
                     {a.label}
