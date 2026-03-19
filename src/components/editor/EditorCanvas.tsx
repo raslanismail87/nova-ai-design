@@ -711,7 +711,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
             <text
               x={artX + artboardWidth / 2}
               y={artY - 14}
-              fill="rgba(255,255,255,0.25)"
+              fill="rgba(0,0,0,0.3)"
               fontSize={10}
               fontFamily="JetBrains Mono, monospace"
               textAnchor="middle"
