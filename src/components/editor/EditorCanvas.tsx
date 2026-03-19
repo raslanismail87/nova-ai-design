@@ -691,7 +691,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
               y={artY}
               width={artboardWidth}
               height={artboardHeight}
-              fill="#0a0a0f"
+              fill="#ffffff"
               rx={4}
               filter="url(#artboard-shadow)"
             />
