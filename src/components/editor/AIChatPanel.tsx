@@ -684,7 +684,7 @@ export default function AIChatPanel({ onClose }: Props) {
             )}
 
             {/* Text input */}
-            <div className="relative rounded-xl bg-secondary/20 border border-border/50 focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_hsl(263_70%_58%/0.08)] transition-all">
+            <div className="relative rounded-xl bg-secondary border border-border focus-within:border-primary/50 focus-within:shadow-[0_0_0_3px_hsl(263_70%_58%/0.1)] transition-all">
               <textarea
                 ref={inputRef}
                 value={input}
