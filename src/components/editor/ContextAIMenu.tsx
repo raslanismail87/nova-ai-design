@@ -65,7 +65,7 @@ const ContextAIMenu = ({ x, y, layerName, onAction, onClose }: Props) => {
               <button
                 key={action.label}
                 onClick={() => { onAction(action.label); onClose(); }}
-                className="w-full flex items-center gap-2.5 px-3 py-[7px] text-[13px] text-foreground/60 hover:bg-white/5 hover:text-foreground/85 transition-colors duration-75"
+                className="w-full flex items-center gap-2.5 px-3 py-[7px] text-[13px] text-foreground/60 hover:bg-foreground/[0.05] hover:text-foreground/85 transition-colors duration-75"
               >
                 <action.icon className="w-3.5 h-3.5 shrink-0 text-muted-foreground/50" />
                 <span className="flex-1 text-left">{action.label}</span>
