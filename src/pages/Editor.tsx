@@ -8,7 +8,7 @@ import AIChatPanel from "@/components/editor/AIChatPanel";
 import AIGenerationModal from "@/components/editor/AIGenerationModal";
 import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
-import { Sparkles, PanelRight } from "lucide-react";
+import { PanelRight } from "lucide-react";
 
 // ─── Command Palette ──────────────────────────────────────────────────────────
 
