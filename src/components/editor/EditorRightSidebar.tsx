@@ -323,7 +323,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
             className={`flex-1 py-2.5 text-xs font-medium capitalize transition-all duration-150 relative ${
               activeTab === tab
                 ? "text-foreground"
-                : "text-muted-foreground/50 hover:text-foreground/70"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {tab}
