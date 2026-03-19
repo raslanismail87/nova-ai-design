@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Sparkles, Plus, Search, Clock, FileText, Users, Wand2, FolderOpen,
   Star, Settings, ChevronDown, MoreHorizontal, Trash2, Edit3,
-  Copy, ExternalLink, X, Layers,
+  Copy, ExternalLink, X, Layers, Grid3X3, List, Check,
 } from "lucide-react";
 import AIGenerationModal from "@/components/editor/AIGenerationModal";
+import { toast } from "sonner";
 
 interface Project {
   id: string;
@@ -141,6 +142,13 @@ export default function Dashboard() {
   const [newName,        setNewName]        = useState("");
   const [activeNav,      setActiveNav]      = useState("recent");
   const [contextMenu,    setContextMenu]    = useState<{ id: string; x: number; y: number } | null>(null);
+  const [viewMode,       setViewMode]       = useState<"grid" | "list">("grid");
+  const [showSettings,   setShowSettings]   = useState(false);
+  const [showWorkspace,  setShowWorkspace]  = useState(false);
+  const [activeWorkspace, setActiveWorkspace] = useState("Acme Studio");
+  const [renamingId,     setRenamingId]     = useState<string | null>(null);
+  const [renameValue,    setRenameValue]    = useState("");
+  const renameInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -149,10 +157,26 @@ export default function Dashboard() {
 
   // Close context menu on click-outside
   useEffect(() => {
-    const handler = () => setContextMenu(null);
+    const handler = () => { setContextMenu(null); setShowWorkspace(false); };
     window.addEventListener("click", handler);
     return () => window.removeEventListener("click", handler);
   }, []);
+
+  // Focus rename input when renaming starts
+  useEffect(() => {
+    if (renamingId) renameInputRef.current?.focus();
+  }, [renamingId]);
+
+  const commitRename = () => {
+    if (renamingId && renameValue.trim()) {
+      setProjects((prev) =>
+        prev.map((p) => p.id === renamingId ? { ...p, name: renameValue.trim(), updatedAt: "Just now" } : p)
+      );
+      toast.success("Project renamed");
+    }
+    setRenamingId(null);
+    setRenameValue("");
+  };
 
   const filtered = projects.filter((p) => {
     const q = p.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -195,12 +219,43 @@ export default function Dashboard() {
         </div>
 
         {/* Workspace switcher */}
-        <div className="px-2 mb-1.5">
-          <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] hover:bg-foreground/[0.04] text-sm transition-all duration-150">
-            <div className="w-4 h-4 rounded-[4px] bg-primary/15 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">A</div>
-            <span className="flex-1 text-left text-[13px] text-foreground/80">Acme Studio</span>
-            <ChevronDown className="w-3 h-3 text-muted-foreground/50" />
+        <div className="px-2 mb-1.5 relative">
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowWorkspace((v) => !v); }}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] hover:bg-foreground/[0.04] text-sm transition-all duration-150"
+          >
+            <div className="w-4 h-4 rounded-[4px] bg-primary/15 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">
+              {activeWorkspace[0]}
+            </div>
+            <span className="flex-1 text-left text-[13px] text-foreground/80">{activeWorkspace}</span>
+            <ChevronDown className={`w-3 h-3 text-muted-foreground/50 transition-transform ${showWorkspace ? "rotate-180" : ""}`} />
           </button>
+          {showWorkspace && (
+            <div
+              className="absolute left-2 right-2 top-full mt-1 z-50 rounded-lg bg-card border border-border shadow-xl py-1 animate-fade-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {["Acme Studio", "Personal", "Side Projects"].map((ws) => (
+                <button
+                  key={ws}
+                  onClick={() => {
+                    setActiveWorkspace(ws);
+                    setShowWorkspace(false);
+                    toast.success(`Switched to ${ws}`);
+                  }}
+                  className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-[13px] transition-colors ${
+                    activeWorkspace === ws ? "text-primary bg-primary/8" : "text-foreground/80 hover:bg-foreground/[0.04]"
+                  }`}
+                >
+                  <div className="w-4 h-4 rounded-[4px] bg-primary/15 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">
+                    {ws[0]}
+                  </div>
+                  <span className="flex-1 text-left">{ws}</span>
+                  {activeWorkspace === ws && <Check className="w-3 h-3 text-primary" />}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Nav */}
@@ -232,7 +287,10 @@ export default function Dashboard() {
 
         {/* Bottom */}
         <div className="p-2 border-t border-border/40">
-          <button className="w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[6px] text-[13px] text-muted-foreground hover:text-foreground/80 hover:bg-foreground/[0.03] transition-all duration-150">
+          <button
+            onClick={() => setShowSettings(true)}
+            className="w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[6px] text-[13px] text-muted-foreground hover:text-foreground/80 hover:bg-foreground/[0.03] transition-all duration-150"
+          >
             <Settings className="w-3.5 h-3.5 text-muted-foreground/50" />
             Settings
           </button>
@@ -289,9 +347,13 @@ export default function Dashboard() {
                 {filtered.length}
               </span>
             </div>
-            <button className="flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors">
-              <Layers className="w-3 h-3" />
-              Grid
+            <button
+              onClick={() => setViewMode((v) => v === "grid" ? "list" : "grid")}
+              className="flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+              title={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
+            >
+              {viewMode === "grid" ? <Grid3X3 className="w-3 h-3" /> : <List className="w-3 h-3" />}
+              {viewMode === "grid" ? "Grid" : "List"}
             </button>
           </div>
 
@@ -318,19 +380,31 @@ export default function Dashboard() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3" : "flex flex-col gap-2"}>
               {/* New project card */}
-              <button
-                onClick={() => setShowNewModal(true)}
-                className="group flex flex-col items-center justify-center min-h-[220px] rounded-[10px] border border-dashed border-border/40 hover:border-primary/25 hover:bg-primary/[0.02] transition-all duration-250"
-              >
-                <div className="w-9 h-9 rounded-xl border border-dashed border-border/50 group-hover:border-primary/35 group-hover:bg-primary/5 flex items-center justify-center transition-all duration-250 mb-2.5">
+              {viewMode === "grid" ? (
+                <button
+                  onClick={() => setShowNewModal(true)}
+                  className="group flex flex-col items-center justify-center min-h-[220px] rounded-[10px] border border-dashed border-border/40 hover:border-primary/25 hover:bg-primary/[0.02] transition-all duration-250"
+                >
+                  <div className="w-9 h-9 rounded-xl border border-dashed border-border/50 group-hover:border-primary/35 group-hover:bg-primary/5 flex items-center justify-center transition-all duration-250 mb-2.5">
+                    <Plus className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors duration-250" />
+                  </div>
+                  <span className="text-[12px] text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors duration-250">
+                    New design
+                  </span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowNewModal(true)}
+                  className="group flex items-center gap-3 px-4 py-3 rounded-[10px] border border-dashed border-border/40 hover:border-primary/25 hover:bg-primary/[0.02] transition-all duration-250"
+                >
                   <Plus className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors duration-250" />
-                </div>
-                <span className="text-[12px] text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors duration-250">
-                  New design
-                </span>
-              </button>
+                  <span className="text-[12px] text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors duration-250">
+                    New design
+                  </span>
+                </button>
+              )}
 
               {/* Project cards */}
               {filtered.map((project) => (
@@ -360,7 +434,24 @@ export default function Dashboard() {
                     onClick={() => openProject(project)}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-[13px] font-medium text-foreground/90 truncate">{project.name}</p>
+                      {renamingId === project.id ? (
+                        <input
+                          ref={renameInputRef}
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onBlur={commitRename}
+                          onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") { setRenamingId(null); setRenameValue(""); } }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-1 text-[13px] font-medium text-foreground/90 bg-secondary/30 border border-primary/40 rounded px-1.5 py-0.5 outline-none focus:border-primary"
+                        />
+                      ) : (
+                        <p
+                          className="text-[13px] font-medium text-foreground/90 truncate"
+                          onDoubleClick={(e) => { e.stopPropagation(); setRenamingId(project.id); setRenameValue(project.name); }}
+                        >
+                          {project.name}
+                        </p>
+                      )}
                       <span className="text-[10px] text-muted-foreground/45 font-mono shrink-0">
                         {project.screens}s
                       </span>
@@ -397,7 +488,7 @@ export default function Dashboard() {
           <div className="nova-glass rounded-[10px] overflow-hidden">
             {[
               { icon: ExternalLink, label: "Open",      action: () => { const p = projects.find(p => p.id === contextMenu.id); if (p) openProject(p); setContextMenu(null); } },
-              { icon: Edit3,        label: "Rename",     action: () => setContextMenu(null) },
+              { icon: Edit3,        label: "Rename",     action: () => { const p = projects.find(p => p.id === contextMenu.id); if (p) { setRenamingId(p.id); setRenameValue(p.name); } setContextMenu(null); } },
               { icon: Copy,         label: "Duplicate",  action: () => { const p = projects.find(p => p.id === contextMenu.id); if (p) { setProjects(prev => [{ ...p, id: String(Date.now()), name: `${p.name} (Copy)`, updatedAt: "Just now" }, ...prev]); } setContextMenu(null); } },
               { icon: Star,         label: projects.find(p => p.id === contextMenu.id)?.starred ? "Unstar" : "Star", action: () => { setProjects(prev => prev.map(p => p.id === contextMenu.id ? { ...p, starred: !p.starred } : p)); setContextMenu(null); } },
             ].map(({ icon: Icon, label, action }) => (
@@ -519,6 +610,100 @@ export default function Dashboard() {
           navigate(`/editor?name=${encodeURIComponent(prompt || "AI Generated Design")}&id=${id}`);
         }}
       />
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <SettingsModal onClose={() => setShowSettings(false)} />
+      )}
+    </div>
+  );
+}
+
+// ─── Settings Modal ──────────────────────────────────────────────────────────
+
+function SettingsModal({ onClose }: { onClose: () => void }) {
+  const [theme, setTheme] = useState("dark");
+  const [gridSnap, setGridSnap] = useState(true);
+  const [autoSave, setAutoSave] = useState(true);
+  const [fontSize, setFontSize] = useState("14");
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 backdrop-blur-md"
+      onClick={onClose}
+    >
+      <div
+        className="bg-card border border-border/50 rounded-2xl w-[440px] shadow-2xl shadow-foreground/10 animate-scale-in border-shine noise-overlay overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/50">
+          <p className="text-[14px] font-semibold tracking-tight">Settings</p>
+          <button onClick={onClose} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-secondary/50 text-muted-foreground transition-colors duration-100">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <div className="p-5 space-y-5">
+          {/* Theme */}
+          <div className="space-y-2">
+            <label className="text-[11px] text-muted-foreground/70 uppercase tracking-wider font-medium">Theme</label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {["light", "dark", "system"].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => { setTheme(t); toast.success(`Theme set to ${t}`); }}
+                  className={`py-2 rounded-[7px] border text-[12px] capitalize transition-all duration-100 ${
+                    theme === t ? "border-primary/40 bg-primary/8 text-primary" : "border-border/50 bg-secondary/15 text-muted-foreground/70 hover:text-foreground/80 hover:bg-secondary/25"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Toggle settings */}
+          <div className="space-y-3">
+            <label className="text-[11px] text-muted-foreground/70 uppercase tracking-wider font-medium">Preferences</label>
+            {[
+              { label: "Snap to grid", value: gridSnap, set: setGridSnap },
+              { label: "Auto-save projects", value: autoSave, set: setAutoSave },
+            ].map((pref) => (
+              <div key={pref.label} className="flex items-center justify-between">
+                <span className="text-[13px] text-foreground/80">{pref.label}</span>
+                <button
+                  onClick={() => { pref.set(!pref.value); toast.success(`${pref.label} ${!pref.value ? "enabled" : "disabled"}`); }}
+                  className={`w-9 h-5 rounded-full transition-colors ${pref.value ? "bg-primary" : "bg-secondary/60 border border-border"}`}
+                >
+                  <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform ${pref.value ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Font size */}
+          <div className="space-y-2">
+            <label className="text-[11px] text-muted-foreground/70 uppercase tracking-wider font-medium">Editor font size</label>
+            <select
+              value={fontSize}
+              onChange={(e) => { setFontSize(e.target.value); toast.success(`Font size set to ${e.target.value}px`); }}
+              className="w-full h-8 px-3 rounded-lg bg-secondary/20 border border-border/60 text-[13px] text-foreground outline-none focus:border-primary/40 transition-all"
+            >
+              {["12", "13", "14", "15", "16"].map((s) => (
+                <option key={s} value={s}>{s}px</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="px-5 py-3 border-t border-border/40 flex justify-end">
+          <button
+            onClick={onClose}
+            className="h-8 px-4 rounded-lg nova-gradient text-[13px] font-medium text-white hover:opacity-90 shadow-md shadow-primary/15 press-scale"
+          >
+            Done
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

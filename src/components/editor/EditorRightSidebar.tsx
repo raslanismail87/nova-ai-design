@@ -260,11 +260,14 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
     radius: true,
     export: false,
   });
+  const [strokePosition, setStrokePosition] = useState("inside");
 
-  const [interactions, setInteractions] = useState<{ id: string; trigger: string; dest: string }[]>([]);
+  const [interactions, setInteractions] = useState<{ id: string; trigger: string; dest: string; animation: string; duration: number }[]>([]);
   const [showAddInteraction, setShowAddInteraction] = useState(false);
   const [newTrigger, setNewTrigger] = useState("On Click");
   const [newDest, setNewDest] = useState("Dashboard");
+  const [selectedAnimation, setSelectedAnimation] = useState("None");
+  const [animDuration, setAnimDuration] = useState(300);
 
   const toggleSection = (key: keyof typeof sections) =>
     setSections((s) => ({ ...s, [key]: !s[key] }));
@@ -459,7 +462,17 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                   open={sections.fill}
                   onToggle={() => toggleSection("fill")}
                   extra={
-                    <button className="mr-1 text-muted-foreground hover:text-foreground" onClick={(e) => e.stopPropagation()} title="Add fill layer">
+                    <button
+                      className="mr-1 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (el) {
+                          updateElement(el.id, { fill: "#8B5CF6" });
+                          toast.success("Fill color reset");
+                        }
+                      }}
+                      title="Reset fill color"
+                    >
                       <Plus className="w-3 h-3" />
                     </button>
                   }
@@ -500,7 +513,18 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                 open={sections.stroke}
                 onToggle={() => toggleSection("stroke")}
                 extra={
-                  <button className="mr-1 text-muted-foreground hover:text-foreground" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    className="mr-1 text-muted-foreground hover:text-foreground"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (el) {
+                        updateElement(el.id, { stroke: "#8B5CF6", strokeWidth: 1 });
+                        setSections((s) => ({ ...s, stroke: true }));
+                        toast.success("Stroke added");
+                      }
+                    }}
+                    title="Add stroke"
+                  >
                     <Plus className="w-3 h-3" />
                   </button>
                 }
@@ -515,7 +539,11 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                     <PropInput label="W" value={el.strokeWidth || 1} onChange={(v) => update("strokeWidth", v)} type="number" min={0} max={20} suffix="px" />
                     <select
                       className="h-7 px-2 rounded-md bg-secondary/30 border border-border text-xs text-foreground outline-none focus:border-primary/50"
-                      defaultValue="inside"
+                      value={strokePosition}
+                      onChange={(e) => {
+                        setStrokePosition(e.target.value);
+                        toast.success(`Stroke position: ${e.target.value}`);
+                      }}
                     >
                       <option value="inside">Inside</option>
                       <option value="center">Center</option>
@@ -682,7 +710,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
-                      setInteractions((prev) => [...prev, { id: String(Date.now()), trigger: newTrigger, dest: newDest }]);
+                      setInteractions((prev) => [...prev, { id: String(Date.now()), trigger: newTrigger, dest: newDest, animation: selectedAnimation, duration: animDuration }]);
                       setShowAddInteraction(false);
                       toast.success("Interaction added");
                     }}
@@ -707,8 +735,12 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                   {["None", "Fade", "Slide", "Push", "Dissolve"].map((anim) => (
                     <button
                       key={anim}
+                      onClick={() => {
+                        setSelectedAnimation(anim);
+                        toast.success(`Animation: ${anim}`);
+                      }}
                       className={`flex-1 py-1.5 text-[10px] rounded-md transition-colors ${
-                        anim === "None" ? "bg-primary/15 text-primary" : "bg-secondary/20 text-muted-foreground hover:text-foreground"
+                        selectedAnimation === anim ? "bg-primary/15 text-primary" : "bg-secondary/20 text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       {anim}
@@ -723,10 +755,11 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                       min={100}
                       max={1000}
                       step={50}
-                      defaultValue={300}
+                      value={animDuration}
+                      onChange={(e) => setAnimDuration(Number(e.target.value))}
                       className="flex-1"
                     />
-                    <span className="text-[10px] font-mono text-muted-foreground w-10">300ms</span>
+                    <span className="text-[10px] font-mono text-muted-foreground w-10">{animDuration}ms</span>
                   </div>
                 </div>
               </div>

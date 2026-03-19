@@ -35,6 +35,7 @@ interface Props {
   onToggleAI: () => void;
   onOpenCommandPalette?: () => void;
   onOpenGenModal?: () => void;
+  onPresent?: () => void;
   projectName?: string;
   pageName?: string;
 }
@@ -44,6 +45,7 @@ export default function EditorToolbar({
   onToggleAI,
   onOpenCommandPalette,
   onOpenGenModal,
+  onPresent,
   projectName = "Fintech Mobile App",
   pageName = "Landing Page",
 }: Props) {
@@ -51,6 +53,7 @@ export default function EditorToolbar({
   const { state, dispatch, undo, redo, canUndo, canRedo } = useCanvas();
   const { activeTool, zoom, artboardWidth, artboardHeight } = state;
   const [showPresets, setShowPresets] = useState(false);
+  const [showProjectMenu, setShowProjectMenu] = useState(false);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -70,10 +73,45 @@ export default function EditorToolbar({
         </div>
       </button>
 
-      <button className="flex items-center gap-1 hover:text-foreground text-foreground text-sm font-medium">
-        {projectName}
-        <ChevronDown className="w-3 h-3 text-muted-foreground ml-0.5" />
-      </button>
+      <div className="relative">
+        <button
+          onClick={() => setShowProjectMenu(!showProjectMenu)}
+          className="flex items-center gap-1 hover:text-foreground text-foreground text-sm font-medium"
+        >
+          {projectName}
+          <ChevronDown className={`w-3 h-3 text-muted-foreground ml-0.5 transition-transform ${showProjectMenu ? "rotate-180" : ""}`} />
+        </button>
+        {showProjectMenu && (
+          <div
+            className="absolute top-full left-0 mt-1 z-50 rounded-xl bg-card border border-border shadow-xl py-1 w-56 animate-fade-in"
+            onMouseLeave={() => setShowProjectMenu(false)}
+          >
+            <p className="px-3 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Pages</p>
+            {state.pages.map((page) => (
+              <button
+                key={page.id}
+                onClick={() => {
+                  dispatch({ type: "SWITCH_PAGE", id: page.id });
+                  toast.success(`Switched to "${page.name}"`);
+                  setShowProjectMenu(false);
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors ${
+                  state.currentPageId === page.id ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                }`}
+              >
+                <span className="flex-1 text-left">{page.name}</span>
+              </button>
+            ))}
+            <div className="h-px bg-border/50 mx-2 my-1" />
+            <button
+              onClick={() => { navigate("/dashboard"); setShowProjectMenu(false); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+            >
+              All Projects
+            </button>
+          </div>
+        )}
+      </div>
       <span className="text-xs text-muted-foreground">/</span>
       <div className="relative">
         <button
@@ -242,6 +280,7 @@ export default function EditorToolbar({
           size="sm"
           className="h-8 nova-gradient border-0 text-primary-foreground hover:opacity-90 shadow-md shadow-primary/15 press-scale"
           title="Present / Preview"
+          onClick={onPresent}
         >
           <Play className="w-3.5 h-3.5 mr-1" />
           Present

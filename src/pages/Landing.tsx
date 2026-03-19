@@ -1,18 +1,38 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sparkles, Github, Chrome, ArrowRight, Zap, Layers, MessageSquare, Wand2 } from "lucide-react";
+import { toast } from "sonner";
 
 const Landing = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const featuresRef = useRef<HTMLDivElement>(null);
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim()) {
+      toast.error("Please enter your email");
+      return;
+    }
+    toast.success(isLogin ? "Welcome back!" : "Account created!");
     navigate("/dashboard");
+  };
+
+  const handleOAuth = (provider: string) => {
+    toast.success(`Signing in with ${provider}…`);
+    setTimeout(() => navigate("/dashboard"), 600);
+  };
+
+  const handleNavClick = (item: string) => {
+    if (item === "Features") {
+      featuresRef.current?.scrollIntoView({ behavior: "smooth" });
+    } else if (item === "Pricing" || item === "Docs") {
+      toast("Coming soon", { description: `${item} page is under construction.` });
+    }
   };
 
   return (
@@ -35,6 +55,7 @@ const Landing = () => {
             {["Features", "Pricing", "Docs"].map((item) => (
               <button
                 key={item}
+                onClick={() => handleNavClick(item)}
                 className="px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] transition-all duration-150"
               >
                 {item}
@@ -71,7 +92,7 @@ const Landing = () => {
             </p>
 
             {/* Feature pills */}
-            <div className="flex flex-wrap gap-2.5">
+            <div ref={featuresRef} className="flex flex-wrap gap-2.5">
               {[
                 { icon: Layers, label: "Visual Canvas" },
                 { icon: MessageSquare, label: "AI Chat Editor" },
@@ -131,11 +152,11 @@ const Landing = () => {
 
                 {/* Social logins */}
                 <div className="grid grid-cols-2 gap-3">
-                  <Button variant="outline" className="h-11 bg-secondary/20 border-border/70 hover:bg-secondary/40 hover:border-border press-scale">
+                  <Button variant="outline" className="h-11 bg-secondary/20 border-border/70 hover:bg-secondary/40 hover:border-border press-scale" onClick={() => handleOAuth("Google")}>
                     <Chrome className="w-4 h-4 mr-2" />
                     Google
                   </Button>
-                  <Button variant="outline" className="h-11 bg-secondary/20 border-border/70 hover:bg-secondary/40 hover:border-border press-scale">
+                  <Button variant="outline" className="h-11 bg-secondary/20 border-border/70 hover:bg-secondary/40 hover:border-border press-scale" onClick={() => handleOAuth("GitHub")}>
                     <Github className="w-4 h-4 mr-2" />
                     GitHub
                   </Button>

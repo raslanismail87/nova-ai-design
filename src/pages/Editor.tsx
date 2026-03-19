@@ -6,9 +6,9 @@ import EditorCanvas from "@/components/editor/EditorCanvas";
 import EditorRightSidebar from "@/components/editor/EditorRightSidebar";
 import AIChatPanel from "@/components/editor/AIChatPanel";
 import AIGenerationModal from "@/components/editor/AIGenerationModal";
-import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
+import { CanvasProvider, useCanvas, CanvasElement } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
-import { PanelRight } from "lucide-react";
+import { PanelRight, X } from "lucide-react";
 
 // ─── Command Palette ──────────────────────────────────────────────────────────
 
@@ -108,6 +108,146 @@ function CommandPalette({ onClose, commands }: { onClose: () => void; commands: 
 }
 
 
+// ─── Present / Preview Mode ───────────────────────────────────────────────────
+
+function PresentMode({
+  elements,
+  artboardWidth,
+  artboardHeight,
+  onClose,
+}: {
+  elements: CanvasElement[];
+  artboardWidth: number;
+  artboardHeight: number;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  // Calculate scale to fit the artboard in the viewport
+  const scale = Math.min(
+    (window.innerWidth - 80) / artboardWidth,
+    (window.innerHeight - 80) / artboardHeight,
+    1
+  );
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+        title="Exit presentation (Esc)"
+      >
+        <X className="w-5 h-5" />
+      </button>
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/40 text-xs">
+        Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white/60 font-mono">Esc</kbd> to exit
+      </div>
+      <svg
+        width={artboardWidth * scale}
+        height={artboardHeight * scale}
+        viewBox={`0 0 ${artboardWidth} ${artboardHeight}`}
+        className="rounded-lg shadow-2xl"
+        style={{ background: "#0a0a0f" }}
+      >
+        {elements
+          .filter((el) => el.visible)
+          .map((el) => {
+            const isGradient = el.fill.startsWith("linear-gradient");
+            const gradId = `present-grad-${el.id}`;
+
+            let gradDef = null;
+            let fillVal = el.fill;
+
+            if (isGradient) {
+              const match = el.fill.match(/#[0-9a-fA-F]{6}|rgba?\([^)]+\)/g);
+              const colors = match || ["#8B5CF6", "#06B6D4"];
+              gradDef = (
+                <defs key={`def-${el.id}`}>
+                  <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={colors[0]} />
+                    <stop offset="100%" stopColor={colors[1] || colors[0]} />
+                  </linearGradient>
+                </defs>
+              );
+              fillVal = `url(#${gradId})`;
+            }
+
+            if (el.type === "ellipse") {
+              return (
+                <g key={el.id}>
+                  {gradDef}
+                  <ellipse
+                    cx={el.x + el.width / 2}
+                    cy={el.y + el.height / 2}
+                    rx={el.width / 2}
+                    ry={el.height / 2}
+                    fill={fillVal}
+                    stroke={el.stroke || "none"}
+                    strokeWidth={el.strokeWidth}
+                    opacity={el.opacity}
+                  />
+                </g>
+              );
+            }
+            if (el.type === "text") {
+              return (
+                <text
+                  key={el.id}
+                  x={el.x}
+                  y={el.y}
+                  fill={el.fill}
+                  fontSize={el.fontSize || 16}
+                  fontWeight={el.fontWeight || "400"}
+                  fontFamily={el.fontFamily || "Inter, sans-serif"}
+                  dominantBaseline="hanging"
+                  opacity={el.opacity}
+                >
+                  {el.textContent || ""}
+                </text>
+              );
+            }
+            if (el.type === "line") {
+              return (
+                <line
+                  key={el.id}
+                  x1={el.x}
+                  y1={el.y}
+                  x2={el.x + el.width}
+                  y2={el.y + el.height}
+                  stroke={el.stroke || el.fill}
+                  strokeWidth={el.strokeWidth || 2}
+                  opacity={el.opacity}
+                />
+              );
+            }
+            return (
+              <g key={el.id}>
+                {gradDef}
+                <rect
+                  x={el.x}
+                  y={el.y}
+                  width={el.width}
+                  height={el.height}
+                  rx={el.cornerRadius}
+                  fill={fillVal}
+                  stroke={el.stroke || "none"}
+                  strokeWidth={el.strokeWidth}
+                  opacity={el.opacity}
+                />
+              </g>
+            );
+          })}
+      </svg>
+    </div>
+  );
+}
+
 // ─── Editor Inner ─────────────────────────────────────────────────────────────
 
 const EditorInner = () => {
@@ -115,6 +255,7 @@ const EditorInner = () => {
   const [rightTab, setRightTab] = useState<"design" | "prototype" | "inspect">("design");
   const [showGenModal, setShowGenModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showPresent, setShowPresent] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -149,6 +290,7 @@ const EditorInner = () => {
     { id: "size-mobile", label: "Resize to Mobile (390×844)", group: "Canvas", action: () => { dispatch({ type: "SET_ARTBOARD_SIZE", width: 390, height: 844 }); toast.success("Canvas resized to 390×844"); } },
     { id: "size-tablet", label: "Resize to Tablet (768×1024)", group: "Canvas", action: () => { dispatch({ type: "SET_ARTBOARD_SIZE", width: 768, height: 1024 }); toast.success("Canvas resized to 768×1024"); } },
     { id: "gen-modal", label: "Generate new design with AI", group: "AI", action: () => setShowGenModal(true) },
+    { id: "present", label: "Present / Preview", shortcut: "⌘⏎", group: "View", action: () => setShowPresent(true) },
     { id: "dashboard", label: "Back to Dashboard", group: "Navigate", action: () => navigate("/dashboard") },
   ];
 
@@ -245,6 +387,7 @@ const EditorInner = () => {
         onToggleAI={() => setShowAI(!showAI)}
         onOpenCommandPalette={() => setShowCommandPalette(true)}
         onOpenGenModal={() => setShowGenModal(true)}
+        onPresent={() => setShowPresent(true)}
         projectName={projectName}
         pageName={pageName}
       />
@@ -283,6 +426,16 @@ const EditorInner = () => {
         <CommandPalette
           commands={commands}
           onClose={() => setShowCommandPalette(false)}
+        />
+      )}
+
+      {/* Present / Preview Mode */}
+      {showPresent && (
+        <PresentMode
+          elements={state.elements}
+          artboardWidth={state.artboardWidth}
+          artboardHeight={state.artboardHeight}
+          onClose={() => setShowPresent(false)}
         />
       )}
     </div>
