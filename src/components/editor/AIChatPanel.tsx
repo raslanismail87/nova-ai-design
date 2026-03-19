@@ -504,7 +504,7 @@ export default function AIChatPanel({ onClose }: Props) {
   );
 
   return (
-    <aside className="w-80 flex flex-col shrink-0 border-l border-border/50 bg-card/80 relative overflow-hidden">
+    <aside className="w-80 flex flex-col shrink-0 border-l border-border bg-card relative overflow-hidden">
       {/* Ambient glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-primary/6 blur-[60px] pointer-events-none" />
 
