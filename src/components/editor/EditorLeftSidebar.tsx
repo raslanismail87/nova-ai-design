@@ -282,7 +282,7 @@ export default function EditorLeftSidebar() {
             <button
               title="Add rectangle"
               onClick={() => handleAddQuick("rectangle")}
-              className="w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-white/6 text-muted-foreground/60 hover:text-foreground/80 transition-colors duration-75"
+              className="w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-foreground/[0.06] text-muted-foreground/60 hover:text-foreground/80 transition-colors duration-75"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
