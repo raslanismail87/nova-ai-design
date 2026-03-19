@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, Maximize, Grid3X3 } from "lucide-react";
 import CanvasAIBar from "./CanvasAIBar";
 import ContextAIMenu from "./ContextAIMenu";
-import AIContextualHUD from "./AIContextualHUD";
 import { useCanvas, CanvasElement } from "@/contexts/CanvasContext";
 
 interface Props {
