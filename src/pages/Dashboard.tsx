@@ -232,7 +232,7 @@ export default function Dashboard() {
 
         {/* Bottom */}
         <div className="p-2 border-t border-border/40">
-          <button className="w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[6px] text-[13px] text-muted-foreground hover:text-foreground/80 hover:bg-white/[0.03] transition-all duration-150">
+          <button className="w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[6px] text-[13px] text-muted-foreground hover:text-foreground/80 hover:bg-foreground/[0.03] transition-all duration-150">
             <Settings className="w-3.5 h-3.5 text-muted-foreground/50" />
             Settings
           </button>
