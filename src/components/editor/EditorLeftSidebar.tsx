@@ -254,7 +254,7 @@ export default function EditorLeftSidebar() {
             className={`flex-1 py-2 text-[12px] font-medium transition-all duration-150 relative ${
               activeTab === tab
                 ? "text-foreground"
-                : "text-muted-foreground/50 hover:text-foreground/70"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {tab}
