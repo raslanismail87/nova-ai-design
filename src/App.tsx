@@ -10,6 +10,23 @@ import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
 
+// Apply persisted settings on app load
+try {
+  const settings = JSON.parse(localStorage.getItem("nova-settings") || "{}");
+  const theme = settings.theme ?? "dark";
+  const root = document.documentElement;
+  if (theme === "light") {
+    root.classList.remove("dark");
+  } else if (theme === "system") {
+    root.classList.toggle("dark", window.matchMedia("(prefers-color-scheme: dark)").matches);
+  } else {
+    root.classList.add("dark");
+  }
+  if (settings.fontSize) {
+    root.style.setProperty("--editor-font-size", `${settings.fontSize}px`);
+  }
+} catch {}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>

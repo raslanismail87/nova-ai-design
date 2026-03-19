@@ -41,6 +41,8 @@ export interface CanvasElement {
   protoInteractions?: { id: string; trigger: string; dest: string; animation: string; duration: number }[];
   protoAnimation?: string;
   protoAnimDuration?: number;
+  // Stroke position
+  strokePosition?: "inside" | "center" | "outside";
 }
 
 export interface PageState {
@@ -577,9 +579,13 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode; projectKey?: 
 
   const [state, dispatch] = useReducer(canvasReducer, undefined, getInitialState);
 
-  // Auto-save to localStorage
+  // Auto-save to localStorage (respects nova-settings autoSave preference)
   React.useEffect(() => {
     if (!projectKey) return;
+    try {
+      const settings = JSON.parse(localStorage.getItem("nova-settings") || "{}");
+      if (settings.autoSave === false) return;
+    } catch {}
     const toSave = {
       pages: state.pages.map((p) =>
         p.id === state.currentPageId ? { ...p, elements: state.elements } : p

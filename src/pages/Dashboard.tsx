@@ -619,13 +619,44 @@ export default function Dashboard() {
   );
 }
 
+// ─── Settings helpers ─────────────────────────────────────────────────────────
+
+function loadSettings() {
+  try {
+    return JSON.parse(localStorage.getItem("nova-settings") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveSettings(patch: Record<string, unknown>) {
+  try {
+    const current = loadSettings();
+    localStorage.setItem("nova-settings", JSON.stringify({ ...current, ...patch }));
+  } catch {}
+}
+
+function applyTheme(theme: string) {
+  const root = document.documentElement;
+  if (theme === "light") {
+    root.classList.remove("dark");
+  } else if (theme === "dark") {
+    root.classList.add("dark");
+  } else {
+    // system
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.classList.toggle("dark", prefersDark);
+  }
+}
+
 // ─── Settings Modal ──────────────────────────────────────────────────────────
 
 function SettingsModal({ onClose }: { onClose: () => void }) {
-  const [theme, setTheme] = useState("dark");
-  const [gridSnap, setGridSnap] = useState(true);
-  const [autoSave, setAutoSave] = useState(true);
-  const [fontSize, setFontSize] = useState("14");
+  const saved = loadSettings();
+  const [theme, setTheme] = useState<string>(saved.theme ?? "dark");
+  const [gridSnap, setGridSnap] = useState<boolean>(saved.gridSnap !== false);
+  const [autoSave, setAutoSave] = useState<boolean>(saved.autoSave !== false);
+  const [fontSize, setFontSize] = useState<string>(saved.fontSize ?? "14");
 
   return (
     <div
@@ -650,7 +681,12 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
               {["light", "dark", "system"].map((t) => (
                 <button
                   key={t}
-                  onClick={() => { setTheme(t); toast.success(`Theme set to ${t}`); }}
+                  onClick={() => {
+                    setTheme(t);
+                    applyTheme(t);
+                    saveSettings({ theme: t });
+                    toast.success(`Theme set to ${t}`);
+                  }}
                   className={`py-2 rounded-[7px] border text-[12px] capitalize transition-all duration-100 ${
                     theme === t ? "border-primary/40 bg-primary/8 text-primary" : "border-border/50 bg-secondary/15 text-muted-foreground/70 hover:text-foreground/80 hover:bg-secondary/25"
                   }`}
@@ -664,14 +700,19 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
           {/* Toggle settings */}
           <div className="space-y-3">
             <label className="text-[11px] text-muted-foreground/70 uppercase tracking-wider font-medium">Preferences</label>
-            {[
-              { label: "Snap to grid", value: gridSnap, set: setGridSnap },
-              { label: "Auto-save projects", value: autoSave, set: setAutoSave },
-            ].map((pref) => (
+            {([
+              { label: "Snap to grid", key: "gridSnap", value: gridSnap, set: setGridSnap },
+              { label: "Auto-save projects", key: "autoSave", value: autoSave, set: setAutoSave },
+            ] as const).map((pref) => (
               <div key={pref.label} className="flex items-center justify-between">
                 <span className="text-[13px] text-foreground/80">{pref.label}</span>
                 <button
-                  onClick={() => { pref.set(!pref.value); toast.success(`${pref.label} ${!pref.value ? "enabled" : "disabled"}`); }}
+                  onClick={() => {
+                    const next = !pref.value;
+                    pref.set(next);
+                    saveSettings({ [pref.key]: next });
+                    toast.success(`${pref.label} ${next ? "enabled" : "disabled"}`);
+                  }}
                   className={`w-9 h-5 rounded-full transition-colors ${pref.value ? "bg-primary" : "bg-secondary/60 border border-border"}`}
                 >
                   <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform ${pref.value ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
@@ -685,7 +726,13 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
             <label className="text-[11px] text-muted-foreground/70 uppercase tracking-wider font-medium">Editor font size</label>
             <select
               value={fontSize}
-              onChange={(e) => { setFontSize(e.target.value); toast.success(`Font size set to ${e.target.value}px`); }}
+              onChange={(e) => {
+                const size = e.target.value;
+                setFontSize(size);
+                saveSettings({ fontSize: size });
+                document.documentElement.style.setProperty("--editor-font-size", `${size}px`);
+                toast.success(`Editor font size set to ${size}px`);
+              }}
               className="w-full h-8 px-3 rounded-lg bg-secondary/20 border border-border/60 text-[13px] text-foreground outline-none focus:border-primary/40 transition-all"
             >
               {["12", "13", "14", "15", "16"].map((s) => (

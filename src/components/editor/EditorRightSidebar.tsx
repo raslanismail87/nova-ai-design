@@ -260,7 +260,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
     radius: true,
     export: false,
   });
-  const [strokePosition, setStrokePosition] = useState("inside");
+  const strokePosition = el?.strokePosition ?? "center";
 
   const [interactions, setInteractions] = useState<{ id: string; trigger: string; dest: string; animation: string; duration: number }[]>([]);
   const [showAddInteraction, setShowAddInteraction] = useState(false);
@@ -555,8 +555,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                       className="h-7 px-2 rounded-md bg-secondary/30 border border-border text-xs text-foreground outline-none focus:border-primary/50"
                       value={strokePosition}
                       onChange={(e) => {
-                        setStrokePosition(e.target.value);
-                        toast.success(`Stroke position: ${e.target.value}`);
+                        if (el) updateElement(el.id, { strokePosition: e.target.value as "inside" | "center" | "outside" });
                       }}
                     >
                       <option value="inside">Inside</option>
