@@ -6,7 +6,7 @@ import ContextAIMenu from "./ContextAIMenu";
 import { useCanvas, CanvasElement } from "@/contexts/CanvasContext";
 
 interface Props {
-  onOpenAI?: () => void;
+  onOpenAI?: (prompt?: string) => void;
 }
 
 type DragState =
@@ -854,7 +854,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
       {selectedElements.length > 0 && (
         <CanvasAIBar
           selectedElement={selectedElements[0]}
-          onSendPrompt={() => onOpenAI?.()}
+          onSendPrompt={(prompt) => onOpenAI?.(prompt)}
           onOpenChat={() => onOpenAI?.()}
         />
       )}
@@ -865,7 +865,24 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
           x={contextMenu.x}
           y={contextMenu.y}
           layerName={contextMenu.name}
-          onAction={() => { onOpenAI?.(); setContextMenu(null); }}
+          onAction={(action) => {
+            setContextMenu(null);
+            if (action === "delete") {
+              deleteSelected();
+              return;
+            }
+            const promptMap: Record<string, string> = {
+              "Ask Nova AI": `What can you help me with for "${contextMenu.name}"?`,
+              "Restyle element": `Restyle "${contextMenu.name}" with a premium visual style`,
+              "Create 3 variations": `Generate 3 design variations for "${contextMenu.name}"`,
+              "Improve layout": "Improve the layout and spacing of this design",
+              "Rewrite copy": "Improve the copy text to be more compelling and clear",
+              "Refine colors": "Refine and improve the color palette",
+              "Fix spacing": "Fix spacing and alignment issues",
+              "Make responsive": "Make this design responsive for mobile screens",
+            };
+            onOpenAI?.(promptMap[action] ?? action);
+          }}
           onClose={() => setContextMenu(null)}
         />
       )}

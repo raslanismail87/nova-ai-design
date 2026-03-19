@@ -323,9 +323,10 @@ const quickActions = [
 
 interface Props {
   onClose: () => void;
+  initialPrompt?: string;
 }
 
-export default function AIChatPanel({ onClose }: Props) {
+export default function AIChatPanel({ onClose, initialPrompt }: Props) {
   const { state, updateElement, selectedElements } = useCanvas();
 
   const selectedEl = selectedElements[0] ?? null;
@@ -347,6 +348,14 @@ export default function AIChatPanel({ onClose }: Props) {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-send when an initial prompt is provided (e.g., from CanvasAIBar or ContextAIMenu)
+  useEffect(() => {
+    if (initialPrompt?.trim()) {
+      const timer = setTimeout(() => handleSend(initialPrompt), 350);
+      return () => clearTimeout(timer);
+    }
+  }, [initialPrompt]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
