@@ -242,7 +242,7 @@ const VariationCard = ({
         className={`w-full py-1.5 rounded-lg text-[10px] font-medium transition-all ${
           applied
             ? "bg-primary text-primary-foreground"
-            : "bg-secondary/40 text-muted-foreground hover:bg-primary/15 hover:text-primary"
+            : "bg-secondary text-foreground/70 hover:bg-primary/15 hover:text-primary"
         }`}
       >
         {applied ? (
