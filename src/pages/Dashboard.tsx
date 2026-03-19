@@ -429,7 +429,7 @@ export default function Dashboard() {
           onClick={() => setShowNewModal(false)}
         >
           <div
-            className="bg-card border border-border/50 rounded-2xl p-5 w-[360px] shadow-2xl shadow-black/50 animate-scale-in border-shine noise-overlay"
+            className="bg-card border border-border/50 rounded-2xl p-5 w-[360px] shadow-2xl shadow-foreground/10 animate-scale-in border-shine noise-overlay"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">

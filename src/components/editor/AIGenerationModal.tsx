@@ -75,7 +75,7 @@ const AIGenerationModal = ({ open, onClose, onGenerate }: Props) => {
         {/* Glow effect */}
         <div className="absolute -inset-1 rounded-3xl nova-gradient opacity-20 blur-xl" />
 
-        <div className="relative rounded-2xl border border-border/50 bg-card shadow-2xl shadow-black/50 overflow-hidden noise-overlay border-shine">
+        <div className="relative rounded-2xl border border-border/50 bg-card shadow-2xl shadow-foreground/10 overflow-hidden noise-overlay border-shine">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <div className="flex items-center gap-3">

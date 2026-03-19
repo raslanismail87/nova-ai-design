@@ -414,7 +414,7 @@ export default function EditorLeftSidebar() {
                   title={`Click to apply to selected, or copy color value`}
                 >
                   <div
-                    className="w-5 h-5 rounded-md shrink-0 border border-white/10"
+                    className="w-5 h-5 rounded-md shrink-0 border border-border"
                     style={{ background: color }}
                   />
                   <span className="flex-1 text-xs text-muted-foreground group-hover:text-foreground transition-colors text-left">{name}</span>

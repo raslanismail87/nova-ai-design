@@ -74,7 +74,7 @@ const ContextAIMenu = ({ x, y, layerName, onAction, onClose }: Props) => {
           </div>
 
           {/* Destructive */}
-          <div className="border-t border-white/6 py-1">
+          <div className="border-t border-border/50 py-1">
             <button
               onClick={() => { onAction("delete"); onClose(); }}
               className="w-full flex items-center gap-2.5 px-3 py-[7px] text-[13px] text-destructive/70 hover:text-destructive hover:bg-destructive/6 transition-colors duration-75"

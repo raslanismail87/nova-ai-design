@@ -146,7 +146,7 @@ const Landing = () => {
                     <div className="w-full border-t border-border/50" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="px-3 bg-[hsl(240_6%_8%)] text-muted-foreground/70">or continue with email</span>
+                    <span className="px-3 bg-card text-muted-foreground/70">or continue with email</span>
                   </div>
                 </div>
 

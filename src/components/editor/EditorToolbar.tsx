@@ -151,7 +151,7 @@ export default function EditorToolbar({
               className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${
                 activeTool === tool.id
                   ? "bg-primary/12 text-primary shadow-sm shadow-primary/5"
-                  : "text-muted-foreground/50 hover:text-foreground/80 hover:bg-white/[0.05] active:bg-white/[0.08]"
+                  : "text-muted-foreground/50 hover:text-foreground/80 hover:bg-foreground/[0.05] active:bg-foreground/[0.08]"
               }`}
               title={`${tool.id.charAt(0).toUpperCase() + tool.id.slice(1)} (${tool.shortcut})`}
             >

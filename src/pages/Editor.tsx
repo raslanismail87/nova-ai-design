@@ -49,7 +49,7 @@ function CommandPalette({ onClose, commands }: { onClose: () => void; commands: 
       onClick={onClose}
     >
       <div
-        className="w-[520px] rounded-2xl bg-card border border-border/60 shadow-2xl shadow-black/60 overflow-hidden animate-slide-down border-shine noise-overlay"
+        className="w-[520px] rounded-2xl bg-card border border-border/60 shadow-2xl shadow-foreground/10 overflow-hidden animate-slide-down border-shine noise-overlay"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}

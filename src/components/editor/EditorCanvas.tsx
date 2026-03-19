@@ -861,7 +861,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         <div className="w-px h-4 bg-border/50 mx-0.5" />
         <button
           onClick={() => dispatch({ type: "TOGGLE_GRID" })}
-          className={`p-1.5 rounded-lg transition-all duration-100 ${showGrid ? "text-primary bg-primary/10" : "text-muted-foreground/70 hover:bg-white/[0.06]"}`}
+          className={`p-1.5 rounded-lg transition-all duration-100 ${showGrid ? "text-primary bg-primary/10" : "text-muted-foreground/70 hover:bg-foreground/[0.06]"}`}
           title="Toggle grid (⌘')"
         >
           <Grid3X3 className="w-3.5 h-3.5" />
