@@ -768,7 +768,7 @@ export default function AIChatPanel({ onClose }: Props) {
                 {/* Hex chips */}
                 <div className="flex items-center gap-1 flex-wrap">
                   {v.palette.slice(0, 3).map((c, i) => (
-                    <div key={i} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary/30 border border-border/40">
+                    <div key={i} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary border border-border">
                       <div className="w-2 h-2 rounded-sm" style={{ background: c }} />
                       <span className="text-[8px] font-mono text-muted-foreground">{c.startsWith("#") ? c.toUpperCase() : "Gradient"}</span>
                     </div>
