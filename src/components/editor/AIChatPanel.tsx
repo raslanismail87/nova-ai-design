@@ -288,7 +288,7 @@ const ChangePreview = ({ changes }: { changes: Change[] }) => {
                   style={{ background: c.before.startsWith("#") || c.before.startsWith("rgb") || c.before.startsWith("linear") ? c.before : undefined }}
                   title={c.before}
                 />
-                <ArrowLeftRight className="w-2.5 h-2.5 text-muted-foreground/50" />
+                <ArrowLeftRight className="w-2.5 h-2.5 text-muted-foreground" />
                 <div
                   className="w-3 h-3 rounded-sm border border-primary/30"
                   style={{ background: c.after.startsWith("#") || c.after.startsWith("rgb") || c.after.startsWith("linear") ? c.after : undefined }}

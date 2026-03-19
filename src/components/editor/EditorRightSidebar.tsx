@@ -175,7 +175,7 @@ const BlurControl = ({ el, update }: { el: CanvasElement; update: (k: keyof Canv
 const InteractionRow = ({
   trigger, dest, onRemove,
 }: { trigger: string; dest: string; onRemove: () => void }) => (
-  <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-secondary/20 border border-border group">
+  <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-secondary border border-border group">
     <div className="flex-1">
       <div className="flex items-center gap-1.5 text-xs">
         <Zap className="w-3 h-3 text-primary" />

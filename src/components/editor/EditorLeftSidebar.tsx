@@ -276,7 +276,7 @@ export default function EditorLeftSidebar() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search layers…"
-                className="w-full pl-6 pr-2 h-6 rounded-[5px] bg-secondary/20 border border-border/50 text-[11px] text-foreground/80 placeholder:text-muted-foreground/35 focus:border-primary/35 focus:bg-secondary/30 transition-all duration-100"
+                className="w-full pl-6 pr-2 h-6 rounded-[5px] bg-secondary border border-border text-[11px] text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-secondary transition-all duration-100"
               />
             </div>
             <button

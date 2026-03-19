@@ -211,7 +211,7 @@ export default function CanvasAIBar({ selectedLayer, onSendPrompt, onOpenChat }:
         {selectedLayer && (
           <div className="px-4 pb-2.5 flex items-center gap-1.5">
             <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
-            <span className="text-[9px] text-muted-foreground/60">
+            <span className="text-[9px] text-muted-foreground">
               Targeting{" "}
               <span className="text-primary font-medium">{selectedLayer.replace(/-/g, " ")}</span>
             </span>

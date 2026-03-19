@@ -234,7 +234,7 @@ export default function EditorToolbar({
           </div>
         </div>
 
-        <Button variant="outline" size="sm" className="h-8 border-border/60 hover:border-border press-scale" onClick={handleShare}>
+        <Button variant="outline" size="sm" className="h-8 border-border hover:border-foreground/20 press-scale" onClick={handleShare}>
           <Share2 className="w-3.5 h-3.5 mr-1" />
           Share
         </Button>
