@@ -277,7 +277,7 @@ const ChangePreview = ({ changes }: { changes: Change[] }) => {
         <ChevronRight className={`w-3 h-3 text-muted-foreground transition-transform ${expanded ? "rotate-90" : ""}`} />
       </div>
       {expanded && (
-        <div className="divide-y divide-border/30">
+        <div className="divide-y divide-border">
           {shown.map((c, i) => (
             <div key={i} className="px-3 py-2 flex items-center gap-2">
               <span className="text-[9px] text-muted-foreground/70 font-mono w-16 shrink-0 truncate">{c.elementName}</span>
