@@ -94,7 +94,6 @@
   }
 
   html {
-    @apply dark;
     text-size-adjust: 100%;
   }
 
