@@ -58,7 +58,7 @@ export default function EditorToolbar({
   };
 
   return (
-    <div className="h-11 border-b border-border/60 bg-card/95 backdrop-blur-sm flex items-center px-3 gap-2 shrink-0 z-30 relative">
+    <div className="h-11 border-b border-border/50 bg-card/90 backdrop-blur-md flex items-center px-3 gap-2 shrink-0 z-30 relative">
       {/* Left: Logo + project name */}
       <button
         onClick={() => navigate("/dashboard")}
@@ -123,7 +123,7 @@ export default function EditorToolbar({
           onClick={undo}
           disabled={!canUndo}
           title="Undo (⌘Z)"
-          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-colors duration-75 ${canUndo ? "text-muted-foreground/70 hover:text-foreground/80 hover:bg-white/5" : "text-muted-foreground/25 cursor-not-allowed"}`}
+          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${canUndo ? "text-muted-foreground/60 hover:text-foreground/80 hover:bg-white/[0.05] active:bg-white/[0.08]" : "text-muted-foreground/20 cursor-not-allowed"}`}
         >
           <Undo2 className="w-3.5 h-3.5" />
         </button>
@@ -131,7 +131,7 @@ export default function EditorToolbar({
           onClick={redo}
           disabled={!canRedo}
           title="Redo (⌘⇧Z)"
-          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-colors duration-75 ${canRedo ? "text-muted-foreground/70 hover:text-foreground/80 hover:bg-white/5" : "text-muted-foreground/25 cursor-not-allowed"}`}
+          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${canRedo ? "text-muted-foreground/60 hover:text-foreground/80 hover:bg-white/[0.05] active:bg-white/[0.08]" : "text-muted-foreground/20 cursor-not-allowed"}`}
         >
           <Redo2 className="w-3.5 h-3.5" />
         </button>
@@ -148,10 +148,10 @@ export default function EditorToolbar({
             <button
               key={tool.id}
               onClick={() => dispatch({ type: "SET_TOOL", tool: tool.id })}
-              className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-colors duration-75 ${
+              className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${
                 activeTool === tool.id
-                  ? "bg-primary/15 text-primary"
-                  : "text-muted-foreground/60 hover:text-foreground/80 hover:bg-white/5"
+                  ? "bg-primary/12 text-primary shadow-sm shadow-primary/5"
+                  : "text-muted-foreground/50 hover:text-foreground/80 hover:bg-white/[0.05] active:bg-white/[0.08]"
               }`}
               title={`${tool.id.charAt(0).toUpperCase() + tool.id.slice(1)} (${tool.shortcut})`}
             >
@@ -234,13 +234,13 @@ export default function EditorToolbar({
           </div>
         </div>
 
-        <Button variant="outline" size="sm" className="h-8 border-border" onClick={handleShare}>
+        <Button variant="outline" size="sm" className="h-8 border-border/60 hover:border-border press-scale" onClick={handleShare}>
           <Share2 className="w-3.5 h-3.5 mr-1" />
           Share
         </Button>
         <Button
           size="sm"
-          className="h-8 nova-gradient border-0 text-primary-foreground hover:opacity-90"
+          className="h-8 nova-gradient border-0 text-primary-foreground hover:opacity-90 shadow-md shadow-primary/15 press-scale"
           title="Present / Preview"
         >
           <Play className="w-3.5 h-3.5 mr-1" />

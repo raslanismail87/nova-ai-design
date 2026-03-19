@@ -185,7 +185,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background flex" onClick={() => setContextMenu(null)}>
 
       {/* ── Sidebar ─────────────────────────────────────────────── */}
-      <aside className="w-56 border-r border-border/60 bg-card flex flex-col shrink-0 select-none">
+      <aside className="w-56 border-r border-border/50 bg-card/80 flex flex-col shrink-0 select-none">
         {/* Logo */}
         <div className="px-4 pt-4 pb-3 flex items-center gap-2.5">
           <div className="w-6 h-6 rounded-[7px] nova-gradient flex items-center justify-center shadow-md shadow-primary/20 shrink-0">
@@ -196,10 +196,10 @@ export default function Dashboard() {
 
         {/* Workspace switcher */}
         <div className="px-2 mb-1.5">
-          <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] hover:bg-white/4 text-sm transition-colors duration-100">
-            <div className="w-4 h-4 rounded-[4px] bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">A</div>
+          <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] hover:bg-white/[0.04] text-sm transition-all duration-150">
+            <div className="w-4 h-4 rounded-[4px] bg-primary/15 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">A</div>
             <span className="flex-1 text-left text-[13px] text-foreground/80">Acme Studio</span>
-            <ChevronDown className="w-3 h-3 text-muted-foreground/60" />
+            <ChevronDown className="w-3 h-3 text-muted-foreground/50" />
           </button>
         </div>
 
@@ -209,20 +209,20 @@ export default function Dashboard() {
             <button
               key={item.id}
               onClick={() => setActiveNav(item.id)}
-              className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[6px] text-[13px] transition-colors duration-100 ${
+              className={`w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[6px] text-[13px] transition-all duration-150 ${
                 activeNav === item.id
-                  ? "bg-white/6 text-foreground font-medium"
-                  : "text-muted-foreground hover:text-foreground/80 hover:bg-white/4"
+                  ? "bg-white/[0.06] text-foreground font-medium shadow-sm shadow-black/10"
+                  : "text-muted-foreground hover:text-foreground/80 hover:bg-white/[0.03]"
               }`}
             >
               <item.icon
-                className={`w-3.5 h-3.5 shrink-0 ${
-                  activeNav === item.id ? "text-primary" : "text-muted-foreground/70"
+                className={`w-3.5 h-3.5 shrink-0 transition-colors duration-150 ${
+                  activeNav === item.id ? "text-primary" : "text-muted-foreground/60"
                 }`}
               />
               <span className="flex-1 text-left">{item.label}</span>
               {item.id === "starred" && projects.filter((p) => p.starred).length > 0 && (
-                <span className="text-[10px] font-mono text-muted-foreground/50">
+                <span className="text-[10px] font-mono text-muted-foreground/40 tabular-nums">
                   {projects.filter((p) => p.starred).length}
                 </span>
               )}
@@ -231,9 +231,9 @@ export default function Dashboard() {
         </nav>
 
         {/* Bottom */}
-        <div className="p-2 border-t border-border/50">
-          <button className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[6px] text-[13px] text-muted-foreground hover:text-foreground/80 hover:bg-white/4 transition-colors duration-100">
-            <Settings className="w-3.5 h-3.5 text-muted-foreground/60" />
+        <div className="p-2 border-t border-border/40">
+          <button className="w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[6px] text-[13px] text-muted-foreground hover:text-foreground/80 hover:bg-white/[0.03] transition-all duration-150">
+            <Settings className="w-3.5 h-3.5 text-muted-foreground/50" />
             Settings
           </button>
         </div>
@@ -243,16 +243,16 @@ export default function Dashboard() {
       <main className="flex-1 overflow-auto min-w-0" onClick={(e) => e.stopPropagation()}>
 
         {/* Header */}
-        <header className="sticky top-0 z-10 border-b border-border/60 bg-background/90 backdrop-blur-md px-8 py-3 flex items-center gap-4">
+        <header className="sticky top-0 z-10 nav-frosted px-8 py-3 flex items-center gap-4">
           {/* Search */}
           <div className="relative w-72">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40" />
             <input
               type="search"
               placeholder="Search projects…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-8 pl-8 pr-3 rounded-lg bg-secondary/25 border border-border/60 text-[13px] text-foreground placeholder:text-muted-foreground/45 focus:border-primary/35 focus:bg-secondary/35 transition-all duration-150"
+              className="w-full h-8 pl-8 pr-3 rounded-lg bg-secondary/20 border border-border/50 text-[13px] text-foreground placeholder:text-muted-foreground/40 focus:border-primary/30 focus:bg-secondary/30 focus:shadow-[0_0_0_3px_hsl(263_70%_58%/0.06)] transition-all duration-200"
             />
           </div>
 
@@ -262,14 +262,14 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowNewModal(true)}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border/70 bg-secondary/20 text-[13px] text-foreground/80 hover:text-foreground hover:bg-secondary/40 hover:border-border transition-all duration-100"
+              className="flex items-center gap-1.5 h-8 px-3.5 rounded-lg border border-border/60 bg-secondary/15 text-[13px] text-foreground/80 hover:text-foreground hover:bg-secondary/35 hover:border-border/80 transition-all duration-150 press-scale"
             >
               <Plus className="w-3.5 h-3.5" />
               New file
             </button>
             <button
               onClick={() => setShowGenModal(true)}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-lg nova-gradient text-[13px] font-medium text-white hover:opacity-90 shadow-md shadow-primary/20 transition-all duration-100"
+              className="flex items-center gap-1.5 h-8 px-3.5 rounded-lg nova-gradient text-[13px] font-medium text-white hover:opacity-90 shadow-md shadow-primary/20 transition-all duration-150 press-scale"
             >
               <Sparkles className="w-3.5 h-3.5" />
               Start with AI
@@ -297,20 +297,20 @@ export default function Dashboard() {
 
           {/* Empty state */}
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <div className="w-12 h-12 rounded-xl bg-secondary/30 flex items-center justify-center mb-4 border border-border/50">
-                <FolderOpen className="w-5 h-5 text-muted-foreground/50" />
+            <div className="flex flex-col items-center justify-center py-28 text-center animate-fade-in">
+              <div className="w-14 h-14 rounded-2xl bg-secondary/20 flex items-center justify-center mb-5 border border-border/40">
+                <FolderOpen className="w-6 h-6 text-muted-foreground/40" />
               </div>
-              <p className="text-[13px] font-medium text-foreground/60 mb-1">
+              <p className="text-sm font-medium text-foreground/60 mb-1.5">
                 {searchQuery ? `No results for "${searchQuery}"` : "No projects yet"}
               </p>
-              <p className="text-xs text-muted-foreground/40 mb-5">
-                {searchQuery ? "Try a different search" : "Create your first project to get started"}
+              <p className="text-xs text-muted-foreground/40 mb-6 max-w-[240px]">
+                {searchQuery ? "Try a different search term" : "Create your first project to get started"}
               </p>
               {!searchQuery && (
                 <button
                   onClick={() => setShowNewModal(true)}
-                  className="flex items-center gap-1.5 h-8 px-3.5 rounded-lg nova-gradient text-[13px] font-medium text-white hover:opacity-90 shadow-md shadow-primary/20"
+                  className="flex items-center gap-1.5 h-9 px-4 rounded-xl nova-gradient text-[13px] font-medium text-white hover:opacity-90 shadow-lg shadow-primary/20 press-scale"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Create project
@@ -322,12 +322,12 @@ export default function Dashboard() {
               {/* New project card */}
               <button
                 onClick={() => setShowNewModal(true)}
-                className="group flex flex-col items-center justify-center min-h-[220px] rounded-[10px] border border-dashed border-border/50 hover:border-primary/30 hover:bg-primary/3 transition-all duration-200"
+                className="group flex flex-col items-center justify-center min-h-[220px] rounded-[10px] border border-dashed border-border/40 hover:border-primary/25 hover:bg-primary/[0.02] transition-all duration-250"
               >
-                <div className="w-8 h-8 rounded-lg border border-dashed border-border/60 group-hover:border-primary/40 flex items-center justify-center transition-colors duration-150 mb-2">
-                  <Plus className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors duration-150" />
+                <div className="w-9 h-9 rounded-xl border border-dashed border-border/50 group-hover:border-primary/35 group-hover:bg-primary/5 flex items-center justify-center transition-all duration-250 mb-2.5">
+                  <Plus className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors duration-250" />
                 </div>
-                <span className="text-[12px] text-muted-foreground/50 group-hover:text-muted-foreground transition-colors duration-150">
+                <span className="text-[12px] text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors duration-250">
                   New design
                 </span>
               </button>
@@ -336,7 +336,7 @@ export default function Dashboard() {
               {filtered.map((project) => (
                 <div
                   key={project.id}
-                  className="group relative rounded-[10px] border border-border/60 bg-card hover:border-border hover:shadow-lg hover:shadow-black/20 transition-all duration-200"
+                  className="group relative rounded-[10px] border border-border/50 bg-card hover:border-border/80 hover:shadow-xl hover:shadow-black/25 hover-lift transition-all duration-250"
                 >
                   {/* More button */}
                   <button
@@ -425,11 +425,11 @@ export default function Dashboard() {
       {/* ── New Project Modal ────────────────────────────────────── */}
       {showNewModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
           onClick={() => setShowNewModal(false)}
         >
           <div
-            className="bg-card border border-border/60 rounded-2xl p-5 w-[360px] shadow-float animate-scale-in"
+            className="bg-card border border-border/50 rounded-2xl p-5 w-[360px] shadow-2xl shadow-black/50 animate-scale-in border-shine noise-overlay"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -489,7 +489,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-2 mt-5">
               <button
                 onClick={() => setShowNewModal(false)}
-                className="flex-1 h-8 rounded-lg border border-border/60 text-[13px] text-muted-foreground/70 hover:text-foreground hover:border-border transition-all duration-100"
+                className="flex-1 h-9 rounded-xl border border-border/50 text-[13px] text-muted-foreground/70 hover:text-foreground hover:border-border/80 hover:bg-secondary/20 transition-all duration-150 press-scale"
               >
                 Cancel
               </button>
@@ -500,7 +500,7 @@ export default function Dashboard() {
                   setNewName("");
                   navigate(`/editor?name=${encodeURIComponent(newName || "Untitled Design")}&id=${id}`);
                 }}
-                className="flex-1 h-8 rounded-lg nova-gradient text-[13px] font-medium text-white hover:opacity-90 shadow-md shadow-primary/15 transition-all duration-100"
+                className="flex-1 h-9 rounded-xl nova-gradient text-[13px] font-medium text-white hover:opacity-90 shadow-lg shadow-primary/15 transition-all duration-150 press-scale"
               >
                 Create
               </button>

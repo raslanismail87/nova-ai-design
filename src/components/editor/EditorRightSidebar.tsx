@@ -313,20 +313,23 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
     : [];
 
   return (
-    <aside className="w-72 border-l border-border bg-card flex flex-col shrink-0">
+    <aside className="w-72 border-l border-border/50 bg-card/80 flex flex-col shrink-0">
       {/* Tabs */}
-      <div className="flex border-b border-border">
+      <div className="flex border-b border-border/50">
         {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => onTabChange(tab)}
-            className={`flex-1 py-2.5 text-xs font-medium capitalize transition-colors ${
+            className={`flex-1 py-2.5 text-xs font-medium capitalize transition-all duration-150 relative ${
               activeTab === tab
-                ? "text-foreground border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground"
+                ? "text-foreground"
+                : "text-muted-foreground/50 hover:text-foreground/70"
             }`}
           >
             {tab}
+            {activeTab === tab && (
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-[1.5px] bg-primary rounded-full" />
+            )}
           </button>
         ))}
       </div>

@@ -244,20 +244,23 @@ export default function EditorLeftSidebar() {
   const currentPage = pages.find((p) => p.id === currentPageId);
 
   return (
-    <aside className="w-60 border-r border-border/60 bg-card flex flex-col shrink-0 select-none">
+    <aside className="w-60 border-r border-border/50 bg-card/80 flex flex-col shrink-0 select-none">
       {/* Tabs */}
-      <div className="flex border-b border-border/60 shrink-0">
+      <div className="flex border-b border-border/50 shrink-0">
         {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 text-[12px] font-medium transition-colors duration-100 ${
+            className={`flex-1 py-2 text-[12px] font-medium transition-all duration-150 relative ${
               activeTab === tab
-                ? "text-foreground border-b border-primary"
-                : "text-muted-foreground/60 hover:text-foreground/80"
+                ? "text-foreground"
+                : "text-muted-foreground/50 hover:text-foreground/70"
             }`}
           >
             {tab}
+            {activeTab === tab && (
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-[1.5px] bg-primary rounded-full" />
+            )}
           </button>
         ))}
       </div>

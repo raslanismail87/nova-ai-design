@@ -113,6 +113,7 @@ export default {
         "75":  "75ms",
         "100": "100ms",
         "150": "150ms",
+        "200": "200ms",
         "250": "250ms",
         "350": "350ms",
       },
@@ -144,6 +145,10 @@ export default {
           from: { opacity: "0", transform: "scale(0.97)" },
           to:   { opacity: "1", transform: "scale(1)" },
         },
+        "slide-down": {
+          from: { opacity: "0", transform: "translateY(-8px)" },
+          to:   { opacity: "1", transform: "translateY(0)" },
+        },
         "glow-pulse": {
           "0%, 100%": { opacity: "0.35" },
           "50%":       { opacity: "0.9"  },
@@ -160,6 +165,7 @@ export default {
         "fade-in":         "fade-in        0.18s cubic-bezier(0.2, 0, 0.2, 1)",
         "slide-in-right":  "slide-in-right 0.2s  cubic-bezier(0.2, 0, 0.2, 1)",
         "scale-in":        "scale-in       0.15s cubic-bezier(0.2, 0, 0.2, 1)",
+        "slide-down":      "slide-down     0.22s cubic-bezier(0.2, 0, 0.2, 1)",
         "glow-pulse":      "glow-pulse 2s ease-in-out infinite",
         "shimmer":         "shimmer 1.5s linear infinite",
       },
