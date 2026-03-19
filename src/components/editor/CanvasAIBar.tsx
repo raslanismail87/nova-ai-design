@@ -125,7 +125,7 @@ export default function CanvasAIBar({ selectedLayer, onSendPrompt, onOpenChat }:
 
         {/* Quick chips row */}
         {expanded && (
-          <div className="px-4 pt-3 pb-2 border-b border-border/25 animate-fade-in">
+          <div className="px-4 pt-3 pb-2 border-b border-border animate-fade-in">
             <div className="flex items-center gap-1.5 flex-wrap">
               {quickChips.map((chip) => (
                 <button
