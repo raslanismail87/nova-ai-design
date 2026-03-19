@@ -682,7 +682,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
 
             {/* Artboard shadow */}
             <filter id="artboard-shadow">
-              <feDropShadow dx="0" dy="8" stdDeviation="24" floodColor="rgba(0,0,0,0.6)" />
+              <feDropShadow dx="0" dy="8" stdDeviation="24" floodColor="rgba(0,0,0,0.12)" />
             </filter>
 
             {/* Artboard background */}
