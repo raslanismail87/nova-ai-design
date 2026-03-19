@@ -391,11 +391,11 @@ export default function EditorLeftSidebar() {
                 { name: "Success", color: "#10B981" },
                 { name: "Warning", color: "#F59E0B" },
                 { name: "Danger", color: "#EF4444" },
-                { name: "Background", color: "#0a0a0f" },
-                { name: "Surface", color: "#1a1a24" },
-                { name: "Border", color: "rgba(255,255,255,0.08)" },
-                { name: "Text Primary", color: "#F2F2F2" },
-                { name: "Text Muted", color: "#888" },
+                { name: "Background", color: "#FAFAFA" },
+                { name: "Surface", color: "#F0F0F5" },
+                { name: "Border", color: "rgba(0,0,0,0.1)" },
+                { name: "Text Primary", color: "#1A1A2E" },
+                { name: "Text Muted", color: "#6B7280" },
               ].map(({ name, color }) => (
                 <button
                   key={name}
