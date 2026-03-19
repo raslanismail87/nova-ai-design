@@ -404,7 +404,7 @@ export default function Dashboard() {
               <button
                 key={label}
                 onClick={action}
-                className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[13px] text-foreground/80 hover:bg-white/6 hover:text-foreground transition-colors duration-75"
+                className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[13px] text-foreground/80 hover:bg-foreground/[0.06] hover:text-foreground transition-colors duration-75"
               >
                 <Icon className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
                 {label}
