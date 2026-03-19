@@ -33,7 +33,7 @@ const ContextAIMenu = ({ x, y, layerName, onAction, onClose }: Props) => {
       >
         <div className="w-[200px] nova-glass rounded-[10px] py-1.5 overflow-hidden">
           {/* Layer header */}
-          <div className="px-3 pt-1 pb-2.5 border-b border-white/6">
+          <div className="px-3 pt-1 pb-2.5 border-b border-border/50">
             <p className="text-[10px] text-muted-foreground/55 mb-0.5 uppercase tracking-wider font-medium">Element</p>
             <p className="text-[13px] font-medium text-foreground/85 truncate leading-tight">{layerName}</p>
           </div>
