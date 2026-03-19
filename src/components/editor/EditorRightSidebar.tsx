@@ -313,7 +313,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
     : [];
 
   return (
-    <aside className="w-72 border-l border-border/50 bg-card/80 flex flex-col shrink-0">
+    <aside className="w-72 border-l border-border bg-card flex flex-col shrink-0">
       {/* Tabs */}
       <div className="flex border-b border-border/50">
         {tabs.map((tab) => (
