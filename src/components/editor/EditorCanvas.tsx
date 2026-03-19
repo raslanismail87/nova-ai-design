@@ -672,7 +672,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
                 </pattern>
                 <pattern id="grid-large" width="80" height="80" patternUnits="userSpaceOnUse">
                   <rect width="80" height="80" fill="url(#grid-small)" />
-                  <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+                  <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
                 </pattern>
               </defs>
             )}
