@@ -35,7 +35,7 @@ const Landing = () => {
             {["Features", "Pricing", "Docs"].map((item) => (
               <button
                 key={item}
-                className="px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-white/4 transition-all duration-150"
+                className="px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] transition-all duration-150"
               >
                 {item}
               </button>
