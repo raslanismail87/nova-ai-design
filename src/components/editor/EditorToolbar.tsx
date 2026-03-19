@@ -82,7 +82,7 @@ export default function EditorToolbar({
           title="Change canvas size"
         >
           {pageName}
-          <span className="text-[9px] text-muted-foreground/50 font-mono ml-1">{artboardWidth}×{artboardHeight}</span>
+          <span className="text-[9px] text-muted-foreground font-mono ml-1">{artboardWidth}×{artboardHeight}</span>
           <ChevronDown className="w-3 h-3" />
         </button>
         {showPresets && (
