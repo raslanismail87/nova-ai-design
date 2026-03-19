@@ -38,7 +38,7 @@ const PropInput = ({
         min={min}
         max={max}
         step={step}
-        className="w-full h-7 px-2 rounded-md bg-secondary/30 border border-border text-xs font-mono text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+        className="w-full h-7 px-2 rounded-md bg-secondary border border-border text-xs font-mono text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
       />
       {suffix && (
         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">
@@ -70,7 +70,7 @@ const ColorSwatch = ({ color, onChange, label }: { color: string; onChange: (c: 
       <input
         value={isGradient ? "Gradient" : color}
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 h-7 px-2 rounded-md bg-secondary/30 border border-border text-xs font-mono text-foreground outline-none focus:border-primary/50 transition-all"
+        className="flex-1 h-7 px-2 rounded-md bg-secondary border border-border text-xs font-mono text-foreground outline-none focus:border-primary/50 transition-all"
         placeholder="none"
         readOnly={isGradient}
       />
@@ -175,7 +175,7 @@ const BlurControl = ({ el, update }: { el: CanvasElement; update: (k: keyof Canv
 const InteractionRow = ({
   trigger, dest, onRemove,
 }: { trigger: string; dest: string; onRemove: () => void }) => (
-  <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-secondary/20 border border-border group">
+  <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-secondary border border-border group">
     <div className="flex-1">
       <div className="flex items-center gap-1.5 text-xs">
         <Zap className="w-3 h-3 text-primary" />
@@ -313,9 +313,9 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
     : [];
 
   return (
-    <aside className="w-72 border-l border-border/50 bg-card/80 flex flex-col shrink-0">
+    <aside className="w-72 border-l border-border bg-card flex flex-col shrink-0">
       {/* Tabs */}
-      <div className="flex border-b border-border/50">
+      <div className="flex border-b border-border">
         {tabs.map((tab) => (
           <button
             key={tab}
@@ -323,7 +323,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
             className={`flex-1 py-2.5 text-xs font-medium capitalize transition-all duration-150 relative ${
               activeTab === tab
                 ? "text-foreground"
-                : "text-muted-foreground/50 hover:text-foreground/70"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {tab}
@@ -338,11 +338,11 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
         {/* No selection state */}
         {!el && activeTab === "design" && (
           <div className="p-6 text-center space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-secondary/50 mx-auto flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-secondary mx-auto flex items-center justify-center">
               <ChevronDown className="w-6 h-6 text-muted-foreground rotate-90" />
             </div>
             <p className="text-xs text-muted-foreground">Select an element to edit its properties</p>
-            <div className="text-[10px] text-muted-foreground/60 space-y-1">
+            <div className="text-[10px] text-muted-foreground space-y-1">
               <p>Click an element on the canvas</p>
               <p>or click a layer in the panel</p>
             </div>

@@ -100,8 +100,8 @@ export default function CanvasAIBar({ selectedLayer, onSendPrompt, onOpenChat }:
       >
         {/* Suggestion pills (shown when focused and has suggestions) */}
         {expanded && showSuggestions && suggestions.length > 0 && (
-          <div className="px-4 pt-3 pb-2 border-b border-border/25 animate-fade-in">
-            <p className="text-[9px] text-muted-foreground/60 uppercase tracking-wider mb-2 font-medium">
+          <div className="px-4 pt-3 pb-2 border-b border-border animate-fade-in">
+            <p className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2 font-medium">
               {selectedLayer ? `Suggestions for "${selectedLayer}"` : "Try asking"}
             </p>
             <div className="space-y-1">
@@ -113,7 +113,7 @@ export default function CanvasAIBar({ selectedLayer, onSendPrompt, onOpenChat }:
                     setShowSuggestions(false);
                     inputRef.current?.focus();
                   }}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-primary/8 text-left group transition-colors"
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-primary/10 text-left group transition-colors"
                 >
                   <ArrowRight className="w-2.5 h-2.5 text-primary/50 group-hover:text-primary transition-colors shrink-0" />
                   <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors">{s}</span>
@@ -125,13 +125,13 @@ export default function CanvasAIBar({ selectedLayer, onSendPrompt, onOpenChat }:
 
         {/* Quick chips row */}
         {expanded && (
-          <div className="px-4 pt-3 pb-2 border-b border-border/25 animate-fade-in">
+          <div className="px-4 pt-3 pb-2 border-b border-border animate-fade-in">
             <div className="flex items-center gap-1.5 flex-wrap">
               {quickChips.map((chip) => (
                 <button
                   key={chip.label}
                   onClick={() => handleChip(chip.label)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary/20 border border-border/30 text-[10px] text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/5 transition-all active:scale-95"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary border border-border text-[10px] text-foreground/70 hover:text-foreground hover:border-primary/40 hover:bg-primary/10 transition-all active:scale-95"
                 >
                   <chip.icon className="w-3 h-3 text-primary/70" />
                   {chip.label}
@@ -185,7 +185,7 @@ export default function CanvasAIBar({ selectedLayer, onSendPrompt, onOpenChat }:
                 ? `Edit "${selectedLayer.replace(/-/g, " ")}" with AI…`
                 : "Ask Nova to edit your design…"
             }
-            className="flex-1 bg-transparent text-[12px] text-foreground outline-none placeholder:text-muted-foreground/50"
+            className="flex-1 bg-transparent text-[12px] text-foreground outline-none placeholder:text-muted-foreground"
           />
 
           {input.trim() ? (
@@ -211,7 +211,7 @@ export default function CanvasAIBar({ selectedLayer, onSendPrompt, onOpenChat }:
         {selectedLayer && (
           <div className="px-4 pb-2.5 flex items-center gap-1.5">
             <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
-            <span className="text-[9px] text-muted-foreground/60">
+            <span className="text-[9px] text-muted-foreground">
               Targeting{" "}
               <span className="text-primary font-medium">{selectedLayer.replace(/-/g, " ")}</span>
             </span>

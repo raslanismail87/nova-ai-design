@@ -244,9 +244,9 @@ export default function EditorLeftSidebar() {
   const currentPage = pages.find((p) => p.id === currentPageId);
 
   return (
-    <aside className="w-60 border-r border-border/50 bg-card/80 flex flex-col shrink-0 select-none">
+    <aside className="w-60 border-r border-border bg-card flex flex-col shrink-0 select-none">
       {/* Tabs */}
-      <div className="flex border-b border-border/50 shrink-0">
+      <div className="flex border-b border-border shrink-0">
         {tabs.map((tab) => (
           <button
             key={tab}
@@ -254,7 +254,7 @@ export default function EditorLeftSidebar() {
             className={`flex-1 py-2 text-[12px] font-medium transition-all duration-150 relative ${
               activeTab === tab
                 ? "text-foreground"
-                : "text-muted-foreground/50 hover:text-foreground/70"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {tab}
@@ -269,14 +269,14 @@ export default function EditorLeftSidebar() {
       {activeTab === "Layers" && (
         <>
           {/* Search + add */}
-          <div className="flex items-center gap-1.5 px-2.5 py-2 border-b border-border/50 shrink-0">
+          <div className="flex items-center gap-1.5 px-2.5 py-2 border-b border-border shrink-0">
             <div className="flex-1 relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground/40 pointer-events-none" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search layers…"
-                className="w-full pl-6 pr-2 h-6 rounded-[5px] bg-secondary/20 border border-border/50 text-[11px] text-foreground/80 placeholder:text-muted-foreground/35 focus:border-primary/35 focus:bg-secondary/30 transition-all duration-100"
+                className="w-full pl-6 pr-2 h-6 rounded-[5px] bg-secondary border border-border text-[11px] text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-secondary transition-all duration-100"
               />
             </div>
             <button

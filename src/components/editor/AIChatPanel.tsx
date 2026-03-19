@@ -220,8 +220,8 @@ const VariationCard = ({
   <div
     className={`rounded-xl border transition-all duration-300 overflow-hidden group ${
       applied
-        ? "border-primary/40 shadow-lg shadow-primary/10"
-        : "border-border/50 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5"
+        ? "border-primary/50 shadow-lg shadow-primary/15"
+        : "border-border hover:border-primary/40 hover:shadow-md hover:shadow-primary/10"
     }`}
   >
     {/* Palette preview */}
@@ -242,7 +242,7 @@ const VariationCard = ({
         className={`w-full py-1.5 rounded-lg text-[10px] font-medium transition-all ${
           applied
             ? "bg-primary text-primary-foreground"
-            : "bg-secondary/40 text-muted-foreground hover:bg-primary/15 hover:text-primary"
+            : "bg-secondary text-foreground/70 hover:bg-primary/15 hover:text-primary"
         }`}
       >
         {applied ? (
@@ -263,9 +263,9 @@ const ChangePreview = ({ changes }: { changes: Change[] }) => {
   if (!changes.length) return null;
   const shown = expanded ? changes : changes.slice(0, 3);
   return (
-    <div className="mt-3 rounded-xl overflow-hidden border border-border/50">
+    <div className="mt-3 rounded-xl overflow-hidden border border-border">
       <div
-        className="px-3 py-2 flex items-center justify-between cursor-pointer bg-secondary/20 hover:bg-secondary/30 transition-colors"
+        className="px-3 py-2 flex items-center justify-between cursor-pointer bg-secondary hover:bg-muted transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-1.5">
@@ -277,10 +277,10 @@ const ChangePreview = ({ changes }: { changes: Change[] }) => {
         <ChevronRight className={`w-3 h-3 text-muted-foreground transition-transform ${expanded ? "rotate-90" : ""}`} />
       </div>
       {expanded && (
-        <div className="divide-y divide-border/30">
+        <div className="divide-y divide-border">
           {shown.map((c, i) => (
             <div key={i} className="px-3 py-2 flex items-center gap-2">
-              <span className="text-[9px] text-muted-foreground/70 font-mono w-16 shrink-0 truncate">{c.elementName}</span>
+              <span className="text-[9px] text-muted-foreground font-mono w-16 shrink-0 truncate">{c.elementName}</span>
               <span className="text-[9px] text-primary/70 font-mono flex-1 truncate">{c.property}</span>
               <div className="flex items-center gap-1.5">
                 <div
@@ -288,7 +288,7 @@ const ChangePreview = ({ changes }: { changes: Change[] }) => {
                   style={{ background: c.before.startsWith("#") || c.before.startsWith("rgb") || c.before.startsWith("linear") ? c.before : undefined }}
                   title={c.before}
                 />
-                <ArrowLeftRight className="w-2.5 h-2.5 text-muted-foreground/50" />
+                <ArrowLeftRight className="w-2.5 h-2.5 text-muted-foreground" />
                 <div
                   className="w-3 h-3 rounded-sm border border-primary/30"
                   style={{ background: c.after.startsWith("#") || c.after.startsWith("rgb") || c.after.startsWith("linear") ? c.after : undefined }}
@@ -504,12 +504,12 @@ export default function AIChatPanel({ onClose }: Props) {
   );
 
   return (
-    <aside className="w-80 flex flex-col shrink-0 border-l border-border/50 bg-card/80 relative overflow-hidden">
+    <aside className="w-80 flex flex-col shrink-0 border-l border-border bg-card relative overflow-hidden">
       {/* Ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-primary/6 blur-[60px] pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-primary/8 blur-[60px] pointer-events-none" />
 
       {/* ── Header ────────────────────────────────────────────── */}
-      <div className="relative shrink-0 px-4 pt-4 pb-3 border-b border-border/50">
+      <div className="relative shrink-0 px-4 pt-4 pb-3 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
             {/* AI orb */}
@@ -537,16 +537,16 @@ export default function AIChatPanel({ onClose }: Props) {
 
         {/* Context badge */}
         {contextName && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/8 border border-primary/15 mb-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/10 border border-primary/20 mb-3">
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             <span className="text-[10px] text-muted-foreground">Targeting</span>
             <span className="text-[10px] text-primary font-medium truncate max-w-[120px]">{contextName}</span>
-            <div className="ml-auto text-[9px] text-muted-foreground/60 font-mono uppercase">{selectedEl?.type}</div>
+            <div className="ml-auto text-[9px] text-muted-foreground font-mono uppercase">{selectedEl?.type}</div>
           </div>
         )}
 
         {/* Mode tabs */}
-        <div className="flex rounded-lg bg-secondary/30 p-0.5">
+        <div className="flex rounded-lg bg-secondary p-0.5">
           {(["chat", "variations"] as const).map((m) => (
             <button
               key={m}
@@ -573,25 +573,25 @@ export default function AIChatPanel({ onClose }: Props) {
               <div key={msg.id} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
                 {msg.role === "user" ? (
                   /* User bubble */
-                  <div className="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-primary/15 border border-primary/20">
+                  <div className="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-primary/12 border border-primary/25">
                     <p className="text-[12px] text-foreground/90 leading-relaxed">{msg.content}</p>
-                    <p className="text-[9px] text-muted-foreground/50 mt-1 text-right">{msg.timestamp}</p>
+                    <p className="text-[9px] text-muted-foreground mt-1 text-right">{msg.timestamp}</p>
                   </div>
                 ) : (
                   /* Assistant card */
                   <div className="w-full">
                     {msg.status === "thinking" ? (
-                      <div className="px-3.5 py-3 rounded-2xl rounded-tl-sm bg-secondary/20 border border-border/40">
+                      <div className="px-3.5 py-3 rounded-2xl rounded-tl-sm bg-secondary border border-border">
                         <ThinkingDots />
                       </div>
                     ) : (
                       <div
                         className={`rounded-2xl rounded-tl-sm border transition-all duration-300 overflow-hidden ${
                           msg.applied
-                            ? "border-emerald-500/20 bg-emerald-500/5"
+                            ? "border-emerald-500/30 bg-emerald-50"
                             : msg.rejected
-                            ? "border-border/30 bg-secondary/10 opacity-60"
-                            : "border-border/40 bg-secondary/20"
+                            ? "border-border bg-muted opacity-60"
+                            : "border-border bg-secondary"
                         }`}
                       >
                         <div className="px-3.5 pt-3 pb-2 space-y-1">
@@ -631,7 +631,7 @@ export default function AIChatPanel({ onClose }: Props) {
                             </button>
                             <button
                               onClick={() => handleReject(msg.id)}
-                              className="px-3 py-2 rounded-xl bg-secondary/30 border border-border/50 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                              className="px-3 py-2 rounded-xl bg-secondary border border-border text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
                             </button>
@@ -648,7 +648,7 @@ export default function AIChatPanel({ onClose }: Props) {
 
                         {/* Timestamp */}
                         <div className="px-3.5 pb-2">
-                          <p className="text-[9px] text-muted-foreground/40">{msg.timestamp}</p>
+                          <p className="text-[9px] text-muted-foreground">{msg.timestamp}</p>
                         </div>
                       </div>
                     )}
@@ -660,7 +660,7 @@ export default function AIChatPanel({ onClose }: Props) {
           </div>
 
           {/* ── Input area ──────────────────────────────────── */}
-          <div className="shrink-0 px-3 pt-2 pb-3 border-t border-border/50 space-y-2">
+          <div className="shrink-0 px-3 pt-2 pb-3 border-t border-border space-y-2">
             {/* Quick actions */}
             {showQuickActions && (
               <div className="flex gap-1.5 flex-wrap">
@@ -668,7 +668,7 @@ export default function AIChatPanel({ onClose }: Props) {
                   <button
                     key={a.label}
                     onClick={() => handleSend(a.prompt)}
-                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-secondary/30 border border-border/40 text-[10px] text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/5 transition-all"
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-secondary border border-border text-[10px] text-foreground/70 hover:text-foreground hover:border-primary/40 hover:bg-primary/10 transition-all"
                   >
                     <a.icon className="w-2.5 h-2.5 text-primary" />
                     {a.label}
@@ -676,7 +676,7 @@ export default function AIChatPanel({ onClose }: Props) {
                 ))}
                 <button
                   onClick={() => setShowQuickActions(false)}
-                  className="text-[9px] text-muted-foreground/40 hover:text-muted-foreground transition-colors ml-auto"
+                  className="text-[9px] text-muted-foreground hover:text-foreground transition-colors ml-auto"
                 >
                   ×
                 </button>
@@ -684,7 +684,7 @@ export default function AIChatPanel({ onClose }: Props) {
             )}
 
             {/* Text input */}
-            <div className="relative rounded-xl bg-secondary/20 border border-border/50 focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_hsl(263_70%_58%/0.08)] transition-all">
+            <div className="relative rounded-xl bg-secondary border border-border focus-within:border-primary/50 focus-within:shadow-[0_0_0_3px_hsl(263_70%_58%/0.1)] transition-all">
               <textarea
                 ref={inputRef}
                 value={input}
@@ -701,7 +701,7 @@ export default function AIChatPanel({ onClose }: Props) {
                     : "Ask Nova to edit your design…"
                 }
                 rows={2}
-                className="w-full px-3.5 pt-3 pb-2 bg-transparent text-[12px] text-foreground placeholder:text-muted-foreground/50 outline-none resize-none"
+                className="w-full px-3.5 pt-3 pb-2 bg-transparent text-[12px] text-foreground placeholder:text-muted-foreground outline-none resize-none"
               />
               <div className="flex items-center justify-between px-3 pb-2.5">
                 <div className="flex items-center gap-2">
@@ -709,7 +709,7 @@ export default function AIChatPanel({ onClose }: Props) {
                     <button
                       key={a.label}
                       onClick={() => setInput(a.prompt)}
-                      className="text-[9px] text-muted-foreground/60 hover:text-primary transition-colors"
+                      className="text-[9px] text-muted-foreground hover:text-primary transition-colors"
                       title={a.label}
                     >
                       <a.icon className="w-3 h-3" />
@@ -717,7 +717,7 @@ export default function AIChatPanel({ onClose }: Props) {
                   ))}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] text-muted-foreground/40 font-mono">⏎ send</span>
+                  <span className="text-[9px] text-muted-foreground font-mono">⏎ send</span>
                   <button
                     onClick={() => handleSend()}
                     disabled={!input.trim()}
@@ -768,7 +768,7 @@ export default function AIChatPanel({ onClose }: Props) {
                 {/* Hex chips */}
                 <div className="flex items-center gap-1 flex-wrap">
                   {v.palette.slice(0, 3).map((c, i) => (
-                    <div key={i} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary/30 border border-border/40">
+                    <div key={i} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary border border-border">
                       <div className="w-2 h-2 rounded-sm" style={{ background: c }} />
                       <span className="text-[8px] font-mono text-muted-foreground">{c.startsWith("#") ? c.toUpperCase() : "Gradient"}</span>
                     </div>
@@ -793,8 +793,8 @@ export default function AIChatPanel({ onClose }: Props) {
           ))}
 
           {/* Generate custom */}
-          <div className="rounded-xl border border-dashed border-border/50 p-4 text-center space-y-2">
-            <div className="w-8 h-8 rounded-xl bg-secondary/40 mx-auto flex items-center justify-center">
+          <div className="rounded-xl border border-dashed border-border p-4 text-center space-y-2">
+            <div className="w-8 h-8 rounded-xl bg-secondary mx-auto flex items-center justify-center">
               <Star className="w-4 h-4 text-muted-foreground" />
             </div>
             <p className="text-[11px] text-muted-foreground">Generate a custom direction</p>

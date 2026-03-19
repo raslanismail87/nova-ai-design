@@ -58,7 +58,7 @@ export default function EditorToolbar({
   };
 
   return (
-    <div className="h-11 border-b border-border/50 bg-card/90 backdrop-blur-md flex items-center px-3 gap-2 shrink-0 z-30 relative">
+    <div className="h-11 border-b border-border bg-card flex items-center px-3 gap-2 shrink-0 z-30 relative">
       {/* Left: Logo + project name */}
       <button
         onClick={() => navigate("/dashboard")}
@@ -82,12 +82,12 @@ export default function EditorToolbar({
           title="Change canvas size"
         >
           {pageName}
-          <span className="text-[9px] text-muted-foreground/50 font-mono ml-1">{artboardWidth}×{artboardHeight}</span>
+          <span className="text-[9px] text-muted-foreground font-mono ml-1">{artboardWidth}×{artboardHeight}</span>
           <ChevronDown className="w-3 h-3" />
         </button>
         {showPresets && (
           <div
-            className="absolute top-full left-0 mt-1 z-50 rounded-xl bg-card border border-border shadow-xl shadow-black/40 py-1 w-48 animate-fade-in"
+            className="absolute top-full left-0 mt-1 z-50 rounded-xl bg-card border border-border shadow-xl py-1 w-48 animate-fade-in"
             onMouseLeave={() => setShowPresets(false)}
           >
             <p className="px-3 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Canvas Size</p>
@@ -109,7 +109,7 @@ export default function EditorToolbar({
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span className="flex-1 text-left">{preset.label}</span>
-                  <span className="text-[10px] font-mono text-muted-foreground/50">{preset.width}×{preset.height}</span>
+                  <span className="text-[10px] font-mono text-muted-foreground">{preset.width}×{preset.height}</span>
                 </button>
               );
             })}
@@ -138,7 +138,7 @@ export default function EditorToolbar({
       </div>
 
       {/* Separator */}
-      <div className="w-px h-4 bg-border/60 mx-1" />
+      <div className="w-px h-4 bg-border mx-1" />
 
       {/* Tools */}
       <div className="flex items-center gap-px">
@@ -150,8 +150,8 @@ export default function EditorToolbar({
               onClick={() => dispatch({ type: "SET_TOOL", tool: tool.id })}
               className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${
                 activeTool === tool.id
-                  ? "bg-primary/12 text-primary shadow-sm shadow-primary/5"
-                  : "text-muted-foreground/50 hover:text-foreground/80 hover:bg-foreground/[0.05] active:bg-foreground/[0.08]"
+                  ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.06] active:bg-foreground/[0.1]"
               }`}
               title={`${tool.id.charAt(0).toUpperCase() + tool.id.slice(1)} (${tool.shortcut})`}
             >
@@ -234,7 +234,7 @@ export default function EditorToolbar({
           </div>
         </div>
 
-        <Button variant="outline" size="sm" className="h-8 border-border/60 hover:border-border press-scale" onClick={handleShare}>
+        <Button variant="outline" size="sm" className="h-8 border-border hover:border-foreground/20 press-scale" onClick={handleShare}>
           <Share2 className="w-3.5 h-3.5 mr-1" />
           Share
         </Button>
