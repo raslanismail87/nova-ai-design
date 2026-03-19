@@ -185,7 +185,7 @@ export default function CanvasAIBar({ selectedLayer, onSendPrompt, onOpenChat }:
                 ? `Edit "${selectedLayer.replace(/-/g, " ")}" with AI…`
                 : "Ask Nova to edit your design…"
             }
-            className="flex-1 bg-transparent text-[12px] text-foreground outline-none placeholder:text-muted-foreground/50"
+            className="flex-1 bg-transparent text-[12px] text-foreground outline-none placeholder:text-muted-foreground"
           />
 
           {input.trim() ? (
