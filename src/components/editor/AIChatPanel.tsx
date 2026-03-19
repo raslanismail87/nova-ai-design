@@ -581,7 +581,7 @@ export default function AIChatPanel({ onClose }: Props) {
                   /* Assistant card */
                   <div className="w-full">
                     {msg.status === "thinking" ? (
-                      <div className="px-3.5 py-3 rounded-2xl rounded-tl-sm bg-secondary/20 border border-border/40">
+                      <div className="px-3.5 py-3 rounded-2xl rounded-tl-sm bg-secondary border border-border">
                         <ThinkingDots />
                       </div>
                     ) : (
