@@ -275,8 +275,104 @@ function PresentMode({
 
 // ─── Editor Inner ─────────────────────────────────────────────────────────────
 
+// ─── Template element generators for AI-generated designs ────────────────────
+
+type TemplateEl = Omit<CanvasElement, "id">;
+
+function buildTemplateElements(prompt: string): TemplateEl[] {
+  const p = prompt.toLowerCase();
+  const base: Partial<TemplateEl> = {
+    rotation: 0, opacity: 1, visible: true, locked: false, stroke: "", strokeWidth: 0,
+  };
+
+  if (p.includes("saas") || p.includes("dashboard") || p.includes("admin") || p.includes("analytics")) {
+    return [
+      { ...base, type: "rectangle", x: 0, y: 0, width: 220, height: 900, fill: "rgba(13,13,22,0.98)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 0, name: "Sidebar" },
+      { ...base, type: "rectangle", x: 220, y: 0, width: 1060, height: 64, fill: "rgba(10,10,18,0.95)", stroke: "rgba(255,255,255,0.06)", strokeWidth: 1, cornerRadius: 0, name: "Top Bar" },
+      { ...base, type: "rectangle", x: 32, y: 22, width: 28, height: 28, fill: "linear-gradient(135deg, #8B5CF6, #06B6D4)", cornerRadius: 8, name: "Logo" },
+      { ...base, type: "text", x: 240, y: 84, width: 280, height: 36, fill: "#F2F2F2", cornerRadius: 0, name: "Page Title", textContent: "Overview", fontSize: 22, fontWeight: "700", fontFamily: "Inter", textAlign: "left", lineHeight: 1.2, letterSpacing: -0.02 },
+      { ...base, type: "rectangle", x: 240, y: 136, width: 232, height: 108, fill: "rgba(20,20,32,0.85)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 14, name: "Stat Card 1", shadowColor: "rgba(0,0,0,0.3)", shadowX: 0, shadowY: 8, shadowBlur: 24 },
+      { ...base, type: "text", x: 264, y: 158, width: 180, height: 18, fill: "#888", cornerRadius: 0, name: "Stat Label 1", textContent: "Total Revenue", fontSize: 12, fontWeight: "500", fontFamily: "Inter", textAlign: "left", lineHeight: 1.3, letterSpacing: 0.01 },
+      { ...base, type: "text", x: 264, y: 182, width: 180, height: 36, fill: "#F2F2F2", cornerRadius: 0, name: "Stat Value 1", textContent: "$48,295", fontSize: 26, fontWeight: "700", fontFamily: "Inter", textAlign: "left", lineHeight: 1.1, letterSpacing: -0.02 },
+      { ...base, type: "rectangle", x: 488, y: 136, width: 232, height: 108, fill: "rgba(20,20,32,0.85)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 14, name: "Stat Card 2", shadowColor: "rgba(0,0,0,0.3)", shadowX: 0, shadowY: 8, shadowBlur: 24 },
+      { ...base, type: "text", x: 512, y: 158, width: 180, height: 18, fill: "#888", cornerRadius: 0, name: "Stat Label 2", textContent: "Active Users", fontSize: 12, fontWeight: "500", fontFamily: "Inter", textAlign: "left", lineHeight: 1.3, letterSpacing: 0.01 },
+      { ...base, type: "text", x: 512, y: 182, width: 180, height: 36, fill: "#F2F2F2", cornerRadius: 0, name: "Stat Value 2", textContent: "12,840", fontSize: 26, fontWeight: "700", fontFamily: "Inter", textAlign: "left", lineHeight: 1.1, letterSpacing: -0.02 },
+      { ...base, type: "rectangle", x: 736, y: 136, width: 232, height: 108, fill: "rgba(20,20,32,0.85)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 14, name: "Stat Card 3", shadowColor: "rgba(0,0,0,0.3)", shadowX: 0, shadowY: 8, shadowBlur: 24 },
+      { ...base, type: "text", x: 760, y: 158, width: 180, height: 18, fill: "#888", cornerRadius: 0, name: "Stat Label 3", textContent: "Conversion Rate", fontSize: 12, fontWeight: "500", fontFamily: "Inter", textAlign: "left", lineHeight: 1.3, letterSpacing: 0.01 },
+      { ...base, type: "text", x: 760, y: 182, width: 180, height: 36, fill: "#10B981", cornerRadius: 0, name: "Stat Value 3", textContent: "+4.6%", fontSize: 26, fontWeight: "700", fontFamily: "Inter", textAlign: "left", lineHeight: 1.1, letterSpacing: -0.02 },
+      { ...base, type: "rectangle", x: 240, y: 264, width: 736, height: 280, fill: "rgba(18,18,28,0.9)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 16, name: "Chart Area", shadowColor: "rgba(0,0,0,0.2)", shadowX: 0, shadowY: 8, shadowBlur: 20 },
+      { ...base, type: "text", x: 264, y: 284, width: 200, height: 22, fill: "#F2F2F2", cornerRadius: 0, name: "Chart Title", textContent: "Revenue Over Time", fontSize: 14, fontWeight: "600", fontFamily: "Inter", textAlign: "left", lineHeight: 1.3, letterSpacing: -0.01 },
+      { ...base, type: "rectangle", x: 240, y: 564, width: 360, height: 200, fill: "rgba(18,18,28,0.9)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 16, name: "Recent Activity" },
+      { ...base, type: "rectangle", x: 620, y: 564, width: 356, height: 200, fill: "rgba(18,18,28,0.9)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 16, name: "Top Segments" },
+    ] as TemplateEl[];
+  }
+
+  if (p.includes("mobile") || p.includes("social") || p.includes("fintech") || p.includes("app")) {
+    return [
+      { ...base, type: "rectangle", x: 280, y: 0, width: 390, height: 844, fill: "rgba(10,10,18,1)", cornerRadius: 40, name: "Phone Frame", stroke: "rgba(255,255,255,0.12)", strokeWidth: 2 },
+      { ...base, type: "rectangle", x: 280, y: 0, width: 390, height: 56, fill: "rgba(15,15,25,0.95)", cornerRadius: 0, name: "Status Bar" },
+      { ...base, type: "text", x: 320, y: 80, width: 310, height: 40, fill: "#F2F2F2", cornerRadius: 0, name: "Screen Title", textContent: "Dashboard", fontSize: 28, fontWeight: "700", fontFamily: "Inter", textAlign: "left", lineHeight: 1.2, letterSpacing: -0.02 },
+      { ...base, type: "rectangle", x: 304, y: 136, width: 342, height: 120, fill: "linear-gradient(135deg, #8B5CF6, #06B6D4)", cornerRadius: 20, name: "Balance Card", shadowColor: "rgba(139,92,246,0.4)", shadowX: 0, shadowY: 12, shadowBlur: 32 },
+      { ...base, type: "text", x: 328, y: 156, width: 200, height: 20, fill: "rgba(255,255,255,0.7)", cornerRadius: 0, name: "Balance Label", textContent: "Total Balance", fontSize: 13, fontWeight: "500", fontFamily: "Inter", textAlign: "left", lineHeight: 1.3, letterSpacing: 0 },
+      { ...base, type: "text", x: 328, y: 182, width: 280, height: 44, fill: "#FFFFFF", cornerRadius: 0, name: "Balance Amount", textContent: "$12,480.50", fontSize: 34, fontWeight: "700", fontFamily: "Inter", textAlign: "left", lineHeight: 1.1, letterSpacing: -0.02 },
+      { ...base, type: "text", x: 304, y: 280, width: 200, height: 24, fill: "#F2F2F2", cornerRadius: 0, name: "Section Label", textContent: "Quick Actions", fontSize: 16, fontWeight: "600", fontFamily: "Inter", textAlign: "left", lineHeight: 1.3, letterSpacing: -0.01 },
+      { ...base, type: "rectangle", x: 304, y: 316, width: 76, height: 76, fill: "rgba(139,92,246,0.15)", stroke: "rgba(139,92,246,0.3)", strokeWidth: 1, cornerRadius: 20, name: "Action Send" },
+      { ...base, type: "rectangle", x: 398, y: 316, width: 76, height: 76, fill: "rgba(6,182,212,0.15)", stroke: "rgba(6,182,212,0.3)", strokeWidth: 1, cornerRadius: 20, name: "Action Receive" },
+      { ...base, type: "rectangle", x: 492, y: 316, width: 76, height: 76, fill: "rgba(16,185,129,0.15)", stroke: "rgba(16,185,129,0.3)", strokeWidth: 1, cornerRadius: 20, name: "Action Pay" },
+      { ...base, type: "rectangle", x: 586, y: 316, width: 76, height: 76, fill: "rgba(245,158,11,0.15)", stroke: "rgba(245,158,11,0.3)", strokeWidth: 1, cornerRadius: 20, name: "Action More" },
+      { ...base, type: "text", x: 304, y: 420, width: 200, height: 24, fill: "#F2F2F2", cornerRadius: 0, name: "Transactions Label", textContent: "Recent Transactions", fontSize: 16, fontWeight: "600", fontFamily: "Inter", textAlign: "left", lineHeight: 1.3, letterSpacing: -0.01 },
+      { ...base, type: "rectangle", x: 304, y: 456, width: 342, height: 64, fill: "rgba(20,20,32,0.8)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 14, name: "Transaction 1" },
+      { ...base, type: "rectangle", x: 304, y: 532, width: 342, height: 64, fill: "rgba(20,20,32,0.8)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 14, name: "Transaction 2" },
+      { ...base, type: "rectangle", x: 304, y: 608, width: 342, height: 64, fill: "rgba(20,20,32,0.8)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 14, name: "Transaction 3" },
+      { ...base, type: "rectangle", x: 280, y: 764, width: 390, height: 80, fill: "rgba(13,13,22,0.98)", stroke: "rgba(255,255,255,0.08)", strokeWidth: 1, cornerRadius: 0, name: "Tab Bar" },
+      { ...base, type: "ellipse", x: 452, y: 774, width: 56, height: 56, fill: "linear-gradient(135deg, #8B5CF6, #06B6D4)", cornerRadius: 0, name: "FAB Button", shadowColor: "rgba(139,92,246,0.5)", shadowX: 0, shadowY: 8, shadowBlur: 20 },
+    ] as TemplateEl[];
+  }
+
+  if (p.includes("ecommerce") || p.includes("e-commerce") || p.includes("shop") || p.includes("checkout")) {
+    return [
+      { ...base, type: "rectangle", x: 0, y: 0, width: 1280, height: 72, fill: "rgba(255,255,255,0.97)", stroke: "rgba(0,0,0,0.08)", strokeWidth: 1, cornerRadius: 0, name: "Navbar" },
+      { ...base, type: "text", x: 40, y: 24, width: 100, height: 28, fill: "#1A1A2E", cornerRadius: 0, name: "Brand Name", textContent: "Shopify", fontSize: 20, fontWeight: "700", fontFamily: "Inter", textAlign: "left", lineHeight: 1.2, letterSpacing: -0.02 },
+      { ...base, type: "rectangle", x: 1100, y: 20, width: 140, height: 36, fill: "#1A1A2E", cornerRadius: 10, name: "Cart Button" },
+      { ...base, type: "rectangle", x: 0, y: 72, width: 280, height: 828, fill: "#F8F9FA", stroke: "rgba(0,0,0,0.06)", strokeWidth: 1, cornerRadius: 0, name: "Filter Sidebar" },
+      { ...base, type: "text", x: 24, y: 100, width: 200, height: 24, fill: "#1A1A2E", cornerRadius: 0, name: "Filter Title", textContent: "Filters", fontSize: 16, fontWeight: "600", fontFamily: "Inter", textAlign: "left", lineHeight: 1.3, letterSpacing: -0.01 },
+      { ...base, type: "rectangle", x: 24, y: 136, width: 232, height: 1, fill: "rgba(0,0,0,0.1)", cornerRadius: 0, name: "Divider 1" },
+      { ...base, type: "text", x: 24, y: 152, width: 200, height: 20, fill: "#374151", cornerRadius: 0, name: "Category Label", textContent: "Category", fontSize: 13, fontWeight: "600", fontFamily: "Inter", textAlign: "left", lineHeight: 1.3, letterSpacing: 0 },
+      { ...base, type: "rectangle", x: 300, y: 88, width: 940, height: 48, fill: "#F3F4F6", stroke: "rgba(0,0,0,0.08)", strokeWidth: 1, cornerRadius: 10, name: "Search Bar" },
+      { ...base, type: "rectangle", x: 300, y: 152, width: 300, height: 380, fill: "#FFFFFF", stroke: "rgba(0,0,0,0.08)", strokeWidth: 1, cornerRadius: 16, name: "Product Card 1", shadowColor: "rgba(0,0,0,0.06)", shadowX: 0, shadowY: 4, shadowBlur: 16 },
+      { ...base, type: "rectangle", x: 300, y: 152, width: 300, height: 224, fill: "#F3F4F6", cornerRadius: 12, name: "Product Image 1" },
+      { ...base, type: "rectangle", x: 620, y: 152, width: 300, height: 380, fill: "#FFFFFF", stroke: "rgba(0,0,0,0.08)", strokeWidth: 1, cornerRadius: 16, name: "Product Card 2", shadowColor: "rgba(0,0,0,0.06)", shadowX: 0, shadowY: 4, shadowBlur: 16 },
+      { ...base, type: "rectangle", x: 940, y: 152, width: 300, height: 380, fill: "#FFFFFF", stroke: "rgba(0,0,0,0.08)", strokeWidth: 1, cornerRadius: 16, name: "Product Card 3", shadowColor: "rgba(0,0,0,0.06)", shadowX: 0, shadowY: 4, shadowBlur: 16 },
+      { ...base, type: "text", x: 320, y: 392, width: 260, height: 22, fill: "#1A1A2E", cornerRadius: 0, name: "Product Name 1", textContent: "Premium Wireless Headphones", fontSize: 14, fontWeight: "600", fontFamily: "Inter", textAlign: "left", lineHeight: 1.3, letterSpacing: -0.01 },
+      { ...base, type: "text", x: 320, y: 420, width: 120, height: 28, fill: "#1A1A2E", cornerRadius: 0, name: "Product Price 1", textContent: "$129.00", fontSize: 18, fontWeight: "700", fontFamily: "Inter", textAlign: "left", lineHeight: 1.2, letterSpacing: -0.01 },
+      { ...base, type: "rectangle", x: 320, y: 458, width: 240, height: 40, fill: "#1A1A2E", cornerRadius: 10, name: "Add to Cart Btn 1" },
+    ] as TemplateEl[];
+  }
+
+  // Default: landing page
+  return [
+    { ...base, type: "rectangle", x: 0, y: 0, width: 1280, height: 72, fill: "rgba(15,15,20,0.95)", stroke: "rgba(255,255,255,0.08)", strokeWidth: 1, cornerRadius: 0, name: "Navigation" },
+    { ...base, type: "rectangle", x: 32, y: 22, width: 28, height: 28, fill: "linear-gradient(135deg, #8B5CF6, #06B6D4)", cornerRadius: 8, name: "Logo Mark" },
+    { ...base, type: "rectangle", x: 1152, y: 20, width: 96, height: 32, fill: "linear-gradient(135deg, #8B5CF6, #06B6D4)", cornerRadius: 10, name: "Get Started" },
+    { ...base, type: "rectangle", x: 0, y: 72, width: 1280, height: 480, fill: "rgba(10,10,15,1)", cornerRadius: 0, name: "Hero Section" },
+    { ...base, type: "text", x: 64, y: 160, width: 540, height: 120, fill: "#F2F2F2", cornerRadius: 0, name: "Headline", textContent: "Design at the\nspeed of thought.", fontSize: 64, fontWeight: "700", fontFamily: "Inter", textAlign: "left", lineHeight: 1.1, letterSpacing: -0.03 },
+    { ...base, type: "text", x: 64, y: 296, width: 480, height: 60, fill: "#999", cornerRadius: 0, name: "Subheadline", textContent: "Create beautiful interfaces by editing visually or chatting naturally with AI.", fontSize: 18, fontWeight: "400", fontFamily: "Inter", textAlign: "left", lineHeight: 1.5, letterSpacing: 0 },
+    { ...base, type: "rectangle", x: 64, y: 380, width: 180, height: 52, fill: "linear-gradient(135deg, #8B5CF6, #06B6D4)", cornerRadius: 14, name: "Primary CTA", shadowColor: "rgba(139,92,246,0.35)", shadowX: 0, shadowY: 12, shadowBlur: 28 },
+    { ...base, type: "rectangle", x: 260, y: 380, width: 140, height: 52, fill: "transparent", stroke: "rgba(255,255,255,0.15)", strokeWidth: 1, cornerRadius: 14, name: "Secondary CTA" },
+    { ...base, type: "rectangle", x: 680, y: 100, width: 520, height: 360, fill: "rgba(139,92,246,0.08)", stroke: "rgba(139,92,246,0.2)", strokeWidth: 1, cornerRadius: 20, name: "Hero Visual" },
+    { ...base, type: "rectangle", x: 0, y: 552, width: 1280, height: 340, fill: "rgba(8,8,12,1)", cornerRadius: 0, name: "Features Section" },
+    { ...base, type: "text", x: 400, y: 572, width: 480, height: 40, fill: "#F2F2F2", cornerRadius: 0, name: "Features Title", textContent: "Everything you need to design faster", fontSize: 26, fontWeight: "600", fontFamily: "Inter", textAlign: "center", lineHeight: 1.3, letterSpacing: -0.01 },
+    { ...base, type: "rectangle", x: 48, y: 628, width: 368, height: 200, fill: "rgba(30,30,40,0.8)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 16, name: "Feature Card 1" },
+    { ...base, type: "rectangle", x: 456, y: 628, width: 368, height: 200, fill: "rgba(30,30,40,0.8)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 16, name: "Feature Card 2" },
+    { ...base, type: "rectangle", x: 864, y: 628, width: 368, height: 200, fill: "rgba(30,30,40,0.8)", stroke: "rgba(255,255,255,0.07)", strokeWidth: 1, cornerRadius: 16, name: "Feature Card 3" },
+  ] as TemplateEl[];
+}
+
+// ─── Editor Inner ─────────────────────────────────────────────────────────────
+
 const EditorInner = () => {
   const [showAI, setShowAI] = useState(false);
+  const [pendingAIPrompt, setPendingAIPrompt] = useState<string>("");
   const [rightTab, setRightTab] = useState<"design" | "prototype" | "inspect">("design");
   const [showGenModal, setShowGenModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -287,7 +383,7 @@ const EditorInner = () => {
   const projectName = searchParams.get("name") || "Fintech Mobile App";
   const pageName = searchParams.get("page") || "Landing Page";
 
-  const { dispatch, deleteSelected, undo, redo, copySelected, paste, duplicateSelected, state, selectedElements } = useCanvas();
+  const { dispatch, deleteSelected, undo, redo, copySelected, paste, duplicateSelected, state, selectedElements, addElements } = useCanvas();
 
   const commands: CommandItem[] = [
     { id: "undo", label: "Undo", shortcut: "⌘Z", group: "Edit", action: undo },
@@ -421,14 +517,22 @@ const EditorInner = () => {
         <EditorLeftSidebar />
 
         {/* Canvas fills remaining space */}
-        <EditorCanvas onOpenAI={() => setShowAI(true)} />
+        <EditorCanvas
+          onOpenAI={(prompt) => {
+            if (prompt) setPendingAIPrompt(prompt);
+            setShowAI(true);
+          }}
+        />
 
         {/* Right panel: AI chat OR properties — seamless transition */}
         <div
           className={`shrink-0 flex transition-all duration-300 ease-out ${showAI ? "w-80" : "w-72"}`}
         >
           {showAI ? (
-            <AIChatPanel onClose={() => setShowAI(false)} />
+            <AIChatPanel
+              onClose={() => { setShowAI(false); setPendingAIPrompt(""); }}
+              initialPrompt={pendingAIPrompt}
+            />
           ) : (
             <EditorRightSidebar
               activeTab={rightTab}
@@ -443,7 +547,15 @@ const EditorInner = () => {
       <AIGenerationModal
         open={showGenModal}
         onClose={() => setShowGenModal(false)}
-        onGenerate={() => setShowGenModal(false)}
+        onGenerate={(prompt) => {
+          setShowGenModal(false);
+          const templateEls = buildTemplateElements(prompt ?? "landing");
+          dispatch({ type: "LOAD_ELEMENTS", elements: [] });
+          setTimeout(() => {
+            addElements(templateEls);
+            toast.success("Design generated!", { description: `${templateEls.length} elements added to canvas` });
+          }, 100);
+        }}
       />
 
       {/* Command Palette */}
