@@ -138,7 +138,7 @@ export default function EditorToolbar({
       </div>
 
       {/* Separator */}
-      <div className="w-px h-4 bg-border/60 mx-1" />
+      <div className="w-px h-4 bg-border mx-1" />
 
       {/* Tools */}
       <div className="flex items-center gap-px">
