@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ChevronDown, Plus, Trash2, Copy, Download, Link2, Zap } from "lucide-react";
 import { useCanvas, CanvasElement } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
@@ -265,7 +265,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
   const [interactions, setInteractions] = useState<{ id: string; trigger: string; dest: string; animation: string; duration: number }[]>([]);
   const [showAddInteraction, setShowAddInteraction] = useState(false);
   const [newTrigger, setNewTrigger] = useState("On Click");
-  const [newDest, setNewDest] = useState("Dashboard");
+  const [newDest, setNewDest] = useState(() => state.pages[0]?.name ?? "");
   const [selectedAnimation, setSelectedAnimation] = useState("None");
   const [animDuration, setAnimDuration] = useState(300);
 
@@ -273,6 +273,20 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
     setSections((s) => ({ ...s, [key]: !s[key] }));
 
   const el: CanvasElement | null = selectedElements[0] ?? null;
+
+  // Sync prototype state from element when selection changes
+  useEffect(() => {
+    if (el) {
+      setInteractions(el.protoInteractions ?? []);
+      setSelectedAnimation(el.protoAnimation ?? "None");
+      setAnimDuration(el.protoAnimDuration ?? 300);
+    } else {
+      setInteractions([]);
+      setSelectedAnimation("None");
+      setAnimDuration(300);
+    }
+    setShowAddInteraction(false);
+  }, [el?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const update = useCallback(
     (key: keyof CanvasElement, raw: string) => {
@@ -664,7 +678,11 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                     key={inter.id}
                     trigger={inter.trigger}
                     dest={inter.dest}
-                    onRemove={() => setInteractions((prev) => prev.filter((i) => i.id !== inter.id))}
+                    onRemove={() => {
+                      const next = interactions.filter((i) => i.id !== inter.id);
+                      setInteractions(next);
+                      if (el) updateElement(el.id, { protoInteractions: next, linkTo: next.find(i => i.trigger === "On Click")?.dest });
+                    }}
                   />
                 ))}
                 {!showAddInteraction && (
@@ -701,8 +719,8 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                       onChange={(e) => setNewDest(e.target.value)}
                       className="w-full h-7 px-2 rounded-md bg-secondary/30 border border-border text-xs text-foreground outline-none focus:border-primary/50"
                     >
-                      {["Landing Page", "Dashboard", "Settings", "Profile", "Onboarding", "Checkout", "Confirmation"].map((d) => (
-                        <option key={d} value={d}>{d}</option>
+                      {state.pages.map((p) => (
+                        <option key={p.id} value={p.name}>{p.name}</option>
                       ))}
                     </select>
                   </div>
@@ -710,7 +728,11 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
-                      setInteractions((prev) => [...prev, { id: String(Date.now()), trigger: newTrigger, dest: newDest, animation: selectedAnimation, duration: animDuration }]);
+                      const destPage = newDest || state.pages[0]?.name || "";
+                      const newItem = { id: String(Date.now()), trigger: newTrigger, dest: destPage, animation: selectedAnimation, duration: animDuration };
+                      const next = [...interactions, newItem];
+                      setInteractions(next);
+                      if (el) updateElement(el.id, { protoInteractions: next, linkTo: next.find(i => i.trigger === "On Click")?.dest });
                       setShowAddInteraction(false);
                       toast.success("Interaction added");
                     }}
@@ -737,6 +759,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                       key={anim}
                       onClick={() => {
                         setSelectedAnimation(anim);
+                        if (el) updateElement(el.id, { protoAnimation: anim });
                         toast.success(`Animation: ${anim}`);
                       }}
                       className={`flex-1 py-1.5 text-[10px] rounded-md transition-colors ${
@@ -756,7 +779,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
                       max={1000}
                       step={50}
                       value={animDuration}
-                      onChange={(e) => setAnimDuration(Number(e.target.value))}
+                      onChange={(e) => { const v = Number(e.target.value); setAnimDuration(v); if (el) updateElement(el.id, { protoAnimDuration: v }); }}
                       className="flex-1"
                     />
                     <span className="text-[10px] font-mono text-muted-foreground w-10">{animDuration}ms</span>
