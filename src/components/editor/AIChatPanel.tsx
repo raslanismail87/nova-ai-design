@@ -631,7 +631,7 @@ export default function AIChatPanel({ onClose }: Props) {
                             </button>
                             <button
                               onClick={() => handleReject(msg.id)}
-                              className="px-3 py-2 rounded-xl bg-secondary/30 border border-border/50 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                              className="px-3 py-2 rounded-xl bg-secondary border border-border text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
                             </button>
