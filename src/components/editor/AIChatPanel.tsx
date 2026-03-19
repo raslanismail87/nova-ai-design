@@ -573,7 +573,7 @@ export default function AIChatPanel({ onClose }: Props) {
               <div key={msg.id} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
                 {msg.role === "user" ? (
                   /* User bubble */
-                  <div className="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-primary/15 border border-primary/20">
+                  <div className="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-primary/12 border border-primary/25">
                     <p className="text-[12px] text-foreground/90 leading-relaxed">{msg.content}</p>
                     <p className="text-[9px] text-muted-foreground/50 mt-1 text-right">{msg.timestamp}</p>
                   </div>
