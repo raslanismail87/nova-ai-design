@@ -244,7 +244,7 @@ export default function EditorLeftSidebar() {
   const currentPage = pages.find((p) => p.id === currentPageId);
 
   return (
-    <aside className="w-60 border-r border-border/50 bg-card/80 flex flex-col shrink-0 select-none">
+    <aside className="w-60 border-r border-border bg-card flex flex-col shrink-0 select-none">
       {/* Tabs */}
       <div className="flex border-b border-border/50 shrink-0">
         {tabs.map((tab) => (
