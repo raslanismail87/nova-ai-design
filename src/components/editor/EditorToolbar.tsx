@@ -58,7 +58,7 @@ export default function EditorToolbar({
   };
 
   return (
-    <div className="h-11 border-b border-border/50 bg-card/90 backdrop-blur-md flex items-center px-3 gap-2 shrink-0 z-30 relative">
+    <div className="h-11 border-b border-border bg-card flex items-center px-3 gap-2 shrink-0 z-30 relative">
       {/* Left: Logo + project name */}
       <button
         onClick={() => navigate("/dashboard")}
