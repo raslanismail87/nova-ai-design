@@ -87,7 +87,7 @@ export default function EditorToolbar({
         </button>
         {showPresets && (
           <div
-            className="absolute top-full left-0 mt-1 z-50 rounded-xl bg-card border border-border shadow-xl shadow-black/40 py-1 w-48 animate-fade-in"
+            className="absolute top-full left-0 mt-1 z-50 rounded-xl bg-card border border-border shadow-xl py-1 w-48 animate-fade-in"
             onMouseLeave={() => setShowPresets(false)}
           >
             <p className="px-3 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Canvas Size</p>
