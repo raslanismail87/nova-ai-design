@@ -709,7 +709,7 @@ export default function AIChatPanel({ onClose }: Props) {
                     <button
                       key={a.label}
                       onClick={() => setInput(a.prompt)}
-                      className="text-[9px] text-muted-foreground/60 hover:text-primary transition-colors"
+                      className="text-[9px] text-muted-foreground hover:text-primary transition-colors"
                       title={a.label}
                     >
                       <a.icon className="w-3 h-3" />
