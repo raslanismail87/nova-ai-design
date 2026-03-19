@@ -717,7 +717,7 @@ export default function AIChatPanel({ onClose }: Props) {
                   ))}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] text-muted-foreground/40 font-mono">⏎ send</span>
+                  <span className="text-[9px] text-muted-foreground font-mono">⏎ send</span>
                   <button
                     onClick={() => handleSend()}
                     disabled={!input.trim()}
