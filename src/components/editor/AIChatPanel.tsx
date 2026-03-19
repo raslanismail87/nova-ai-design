@@ -701,7 +701,7 @@ export default function AIChatPanel({ onClose }: Props) {
                     : "Ask Nova to edit your design…"
                 }
                 rows={2}
-                className="w-full px-3.5 pt-3 pb-2 bg-transparent text-[12px] text-foreground placeholder:text-muted-foreground/50 outline-none resize-none"
+                className="w-full px-3.5 pt-3 pb-2 bg-transparent text-[12px] text-foreground placeholder:text-muted-foreground outline-none resize-none"
               />
               <div className="flex items-center justify-between px-3 pb-2.5">
                 <div className="flex items-center gap-2">
