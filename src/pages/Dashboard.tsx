@@ -425,7 +425,7 @@ export default function Dashboard() {
       {/* ── New Project Modal ────────────────────────────────────── */}
       {showNewModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 backdrop-blur-md"
           onClick={() => setShowNewModal(false)}
         >
           <div
