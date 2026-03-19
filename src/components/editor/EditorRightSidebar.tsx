@@ -70,7 +70,7 @@ const ColorSwatch = ({ color, onChange, label }: { color: string; onChange: (c: 
       <input
         value={isGradient ? "Gradient" : color}
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 h-7 px-2 rounded-md bg-secondary/30 border border-border text-xs font-mono text-foreground outline-none focus:border-primary/50 transition-all"
+        className="flex-1 h-7 px-2 rounded-md bg-secondary border border-border text-xs font-mono text-foreground outline-none focus:border-primary/50 transition-all"
         placeholder="none"
         readOnly={isGradient}
       />
