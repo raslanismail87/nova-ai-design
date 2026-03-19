@@ -107,26 +107,6 @@ function CommandPalette({ onClose, commands }: { onClose: () => void; commands: 
   );
 }
 
-// ─── AI Panel Mode Toggle ─────────────────────────────────────────────────────
-
-/** Floating pill that pulses to invite the user to open AI when nothing is selected */
-function AIInvitePill({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="absolute bottom-32 right-6 z-20 flex items-center gap-2.5 px-3.5 py-2.5 nova-glass rounded-2xl border-primary/15 shadow-lg shadow-primary/8 hover:border-primary/30 hover:shadow-primary/15 transition-all duration-250 group animate-fade-in press-scale"
-    >
-      <div className="w-6 h-6 rounded-[10px] nova-gradient flex items-center justify-center shadow-sm shadow-primary/25 group-hover:shadow-primary/35 transition-shadow animate-ai-orb">
-        <Sparkles className="w-3 h-3 text-primary-foreground" />
-      </div>
-      <div className="text-left">
-        <p className="text-[10px] font-semibold text-foreground leading-none">Ask Nova</p>
-        <p className="text-[9px] text-muted-foreground/70 mt-0.5">AI design partner</p>
-      </div>
-      <kbd className="kbd ml-1">⌘I</kbd>
-    </button>
-  );
-}
 
 // ─── Editor Inner ─────────────────────────────────────────────────────────────
 
