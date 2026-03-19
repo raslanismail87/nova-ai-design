@@ -269,10 +269,6 @@ const EditorInner = () => {
           )}
         </div>
 
-        {/* AI invite pill — shown when AI panel is closed */}
-        {!showAI && (
-          <AIInvitePill onClick={() => setShowAI(true)} />
-        )}
       </div>
 
       {/* AI Generation Modal */}

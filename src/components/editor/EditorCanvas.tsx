@@ -797,19 +797,14 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         </div>
       </div>
 
-      {/* Contextual AI HUD – appears above CanvasAIBar when element is selected */}
-      <AIContextualHUD
-        element={selectedElements[0] ?? null}
-        onSendPrompt={() => {}}
-        onOpenChat={() => onOpenAI?.()}
-      />
-
-      {/* Canvas AI command bar */}
-      <CanvasAIBar
-        selectedLayer={selectedIds[0] || null}
-        onSendPrompt={() => onOpenAI?.()}
-        onOpenChat={() => onOpenAI?.()}
-      />
+      {/* Canvas AI command bar — only when element selected */}
+      {selectedElements.length > 0 && (
+        <CanvasAIBar
+          selectedElement={selectedElements[0]}
+          onSendPrompt={() => onOpenAI?.()}
+          onOpenChat={() => onOpenAI?.()}
+        />
+      )}
 
       {/* Context AI menu */}
       {contextMenu && (
