@@ -113,7 +113,7 @@ export default function CanvasAIBar({ selectedLayer, onSendPrompt, onOpenChat }:
                     setShowSuggestions(false);
                     inputRef.current?.focus();
                   }}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-primary/8 text-left group transition-colors"
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-primary/10 text-left group transition-colors"
                 >
                   <ArrowRight className="w-2.5 h-2.5 text-primary/50 group-hover:text-primary transition-colors shrink-0" />
                   <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors">{s}</span>
