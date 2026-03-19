@@ -47,7 +47,7 @@ const ContextAIMenu = ({ x, y, layerName, onAction, onClose }: Props) => {
                 className={`w-full flex items-center gap-2.5 px-3 py-[7px] text-[13px] transition-colors duration-75 ${
                   i === 0
                     ? "text-primary/90 hover:bg-primary/8 hover:text-primary"
-                    : "text-foreground/70 hover:bg-white/5 hover:text-foreground/90"
+                    : "text-foreground/70 hover:bg-foreground/[0.05] hover:text-foreground/90"
                 }`}
               >
                 <action.icon className={`w-3.5 h-3.5 shrink-0 ${i === 0 ? "text-primary/80" : "text-muted-foreground/60"}`} />
