@@ -100,7 +100,7 @@ export default function CanvasAIBar({ selectedLayer, onSendPrompt, onOpenChat }:
       >
         {/* Suggestion pills (shown when focused and has suggestions) */}
         {expanded && showSuggestions && suggestions.length > 0 && (
-          <div className="px-4 pt-3 pb-2 border-b border-border/25 animate-fade-in">
+          <div className="px-4 pt-3 pb-2 border-b border-border animate-fade-in">
             <p className="text-[9px] text-muted-foreground/60 uppercase tracking-wider mb-2 font-medium">
               {selectedLayer ? `Suggestions for "${selectedLayer}"` : "Try asking"}
             </p>
