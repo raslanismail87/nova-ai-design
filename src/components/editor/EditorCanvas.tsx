@@ -789,7 +789,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
               width={artboardWidth}
               height={artboardHeight}
               fill="none"
-              stroke="rgba(255,255,255,0.08)"
+              stroke="rgba(0,0,0,0.1)"
               strokeWidth={1}
               rx={4}
               style={{ pointerEvents: "none" }}
