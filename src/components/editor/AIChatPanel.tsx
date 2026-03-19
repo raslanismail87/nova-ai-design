@@ -537,7 +537,7 @@ export default function AIChatPanel({ onClose }: Props) {
 
         {/* Context badge */}
         {contextName && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/8 border border-primary/15 mb-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/10 border border-primary/20 mb-3">
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             <span className="text-[10px] text-muted-foreground">Targeting</span>
             <span className="text-[10px] text-primary font-medium truncate max-w-[120px]">{contextName}</span>
