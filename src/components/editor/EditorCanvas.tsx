@@ -845,7 +845,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         </select>
         <button
           onClick={() => dispatch({ type: "SET_ZOOM", zoom: state.zoom + 10 })}
-          className="p-1.5 rounded-lg hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-100"
+          className="p-1.5 rounded-lg hover:bg-foreground/[0.06] active:bg-foreground/[0.1] transition-all duration-100"
           title="Zoom in (Ctrl +)"
         >
           <ZoomIn className="w-3.5 h-3.5 text-muted-foreground/70" />
