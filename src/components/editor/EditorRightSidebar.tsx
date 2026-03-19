@@ -260,6 +260,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
     radius: true,
     export: false,
   });
+  const el: CanvasElement | null = selectedElements[0] ?? null;
   const strokePosition = el?.strokePosition ?? "center";
 
   const [interactions, setInteractions] = useState<{ id: string; trigger: string; dest: string; animation: string; duration: number }[]>([]);
@@ -271,8 +272,6 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
 
   const toggleSection = (key: keyof typeof sections) =>
     setSections((s) => ({ ...s, [key]: !s[key] }));
-
-  const el: CanvasElement | null = selectedElements[0] ?? null;
 
   // Sync prototype state from element when selection changes
   useEffect(() => {
