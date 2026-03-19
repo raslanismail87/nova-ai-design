@@ -338,7 +338,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
         {/* No selection state */}
         {!el && activeTab === "design" && (
           <div className="p-6 text-center space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-secondary/50 mx-auto flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-secondary mx-auto flex items-center justify-center">
               <ChevronDown className="w-6 h-6 text-muted-foreground rotate-90" />
             </div>
             <p className="text-xs text-muted-foreground">Select an element to edit its properties</p>
