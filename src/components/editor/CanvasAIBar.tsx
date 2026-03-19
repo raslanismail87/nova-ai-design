@@ -131,7 +131,7 @@ export default function CanvasAIBar({ selectedLayer, onSendPrompt, onOpenChat }:
                 <button
                   key={chip.label}
                   onClick={() => handleChip(chip.label)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary/20 border border-border/30 text-[10px] text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/5 transition-all active:scale-95"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary border border-border text-[10px] text-foreground/70 hover:text-foreground hover:border-primary/40 hover:bg-primary/10 transition-all active:scale-95"
                 >
                   <chip.icon className="w-3 h-3 text-primary/70" />
                   {chip.label}
