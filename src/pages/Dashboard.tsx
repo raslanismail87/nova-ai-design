@@ -356,7 +356,7 @@ export default function Dashboard() {
 
                   {/* Card info */}
                   <button
-                    className="w-full text-left px-3.5 py-3 space-y-2 hover:bg-white/2 transition-colors duration-100 rounded-b-[10px]"
+                    className="w-full text-left px-3.5 py-3 space-y-2 hover:bg-foreground/[0.02] transition-colors duration-100 rounded-b-[10px]"
                     onClick={() => openProject(project)}
                   >
                     <div className="flex items-center justify-between gap-2">
