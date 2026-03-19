@@ -246,7 +246,7 @@ export default function EditorLeftSidebar() {
   return (
     <aside className="w-60 border-r border-border bg-card flex flex-col shrink-0 select-none">
       {/* Tabs */}
-      <div className="flex border-b border-border/50 shrink-0">
+      <div className="flex border-b border-border shrink-0">
         {tabs.map((tab) => (
           <button
             key={tab}
