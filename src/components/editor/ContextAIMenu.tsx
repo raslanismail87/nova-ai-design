@@ -60,7 +60,7 @@ const ContextAIMenu = ({ x, y, layerName, onAction, onClose }: Props) => {
           </div>
 
           {/* Edit actions */}
-          <div className="border-t border-white/6 py-1">
+          <div className="border-t border-border/50 py-1">
             {editActions.map((action) => (
               <button
                 key={action.label}
