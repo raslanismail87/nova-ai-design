@@ -19,8 +19,18 @@ type DragState =
 
 const SNAP = 8; // snap grid size
 
-function snapToGrid(val: number): number {
+function snapToGrid(val: number, enabled = true): number {
+  if (!enabled) return val;
   return Math.round(val / SNAP) * SNAP;
+}
+
+function getSnapEnabled(): boolean {
+  try {
+    const settings = JSON.parse(localStorage.getItem("nova-settings") || "{}");
+    return settings.gridSnap !== false;
+  } catch {
+    return true;
+  }
 }
 
 // Parse SVG filter ID for shadow/blur
@@ -92,16 +102,33 @@ const SvgElement = ({
     );
   }
 
+  const strokePos = el.strokePosition ?? "center";
+  const strokeWidth = el.strokeWidth || 0;
+  // For inside/outside we double the strokeWidth (SVG strokes are centered on path)
+  const adjustedStrokeWidth = (strokePos === "center" || !el.stroke) ? strokeWidth : strokeWidth * 2;
+  const clipId = `clip-${el.id}`;
+
   const commonProps = {
     fill: fillRef,
     stroke: el.stroke || "none",
-    strokeWidth: el.strokeWidth,
+    strokeWidth: adjustedStrokeWidth,
     opacity: el.opacity,
     filter: filterId ? `url(#${filterId})` : undefined,
     style: { cursor: el.locked ? "default" : "move" },
     onPointerDown: (e: React.PointerEvent) => !el.locked && onPointerDown(e, el.id),
     onDoubleClick: (e: React.MouseEvent) => onDoubleClick(e, el.id),
   };
+
+  // Clip path def for "inside" stroke (clips stroke to element bounds)
+  const insideClipDef = strokePos === "inside" && el.stroke ? (
+    <clipPath id={clipId}>
+      {(el.type === "rectangle" || el.type === "frame" || el.type === "image") ? (
+        <rect x={el.x} y={el.y} width={Math.max(1, el.width)} height={Math.max(1, el.height)} rx={el.cornerRadius} ry={el.cornerRadius} />
+      ) : el.type === "ellipse" ? (
+        <ellipse cx={el.x + el.width / 2} cy={el.y + el.height / 2} rx={Math.max(1, el.width / 2)} ry={Math.max(1, el.height / 2)} />
+      ) : null}
+    </clipPath>
+  ) : null;
 
   const transform = el.rotation
     ? `rotate(${el.rotation}, ${el.x + el.width / 2}, ${el.y + el.height / 2})`
@@ -112,25 +139,47 @@ const SvgElement = ({
       <defs>
         {gradDef}
         {filterDef}
+        {insideClipDef}
       </defs>
       {el.type === "rectangle" || el.type === "frame" || el.type === "image" ? (
-        <rect
-          x={el.x}
-          y={el.y}
-          width={Math.max(1, el.width)}
-          height={Math.max(1, el.height)}
-          rx={el.cornerRadius}
-          ry={el.cornerRadius}
-          {...commonProps}
-        />
+        <>
+          {/* Outside stroke: render stroke-only shape behind, then fill-only shape on top */}
+          {strokePos === "outside" && el.stroke && (
+            <rect
+              x={el.x} y={el.y}
+              width={Math.max(1, el.width)} height={Math.max(1, el.height)}
+              rx={el.cornerRadius} ry={el.cornerRadius}
+              fill="none" stroke={el.stroke} strokeWidth={adjustedStrokeWidth}
+              opacity={el.opacity}
+            />
+          )}
+          <rect
+            x={el.x} y={el.y}
+            width={Math.max(1, el.width)} height={Math.max(1, el.height)}
+            rx={el.cornerRadius} ry={el.cornerRadius}
+            {...commonProps}
+            stroke={strokePos === "outside" ? "none" : commonProps.stroke}
+            clipPath={strokePos === "inside" && el.stroke ? `url(#${clipId})` : undefined}
+          />
+        </>
       ) : el.type === "ellipse" ? (
-        <ellipse
-          cx={el.x + el.width / 2}
-          cy={el.y + el.height / 2}
-          rx={Math.max(1, el.width / 2)}
-          ry={Math.max(1, el.height / 2)}
-          {...commonProps}
-        />
+        <>
+          {strokePos === "outside" && el.stroke && (
+            <ellipse
+              cx={el.x + el.width / 2} cy={el.y + el.height / 2}
+              rx={Math.max(1, el.width / 2)} ry={Math.max(1, el.height / 2)}
+              fill="none" stroke={el.stroke} strokeWidth={adjustedStrokeWidth}
+              opacity={el.opacity}
+            />
+          )}
+          <ellipse
+            cx={el.x + el.width / 2} cy={el.y + el.height / 2}
+            rx={Math.max(1, el.width / 2)} ry={Math.max(1, el.height / 2)}
+            {...commonProps}
+            stroke={strokePos === "outside" ? "none" : commonProps.stroke}
+            clipPath={strokePos === "inside" && el.stroke ? `url(#${clipId})` : undefined}
+          />
+        </>
       ) : el.type === "line" ? (
         <line
           x1={el.x}
@@ -380,8 +429,9 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
     if (["rectangle", "ellipse", "frame", "line", "image"].includes(activeTool)) {
       setDragState({ kind: "drawing", startX: x, startY: y, currentX: x, currentY: y });
     } else if (activeTool === "text") {
-      const snappedX = snapToGrid(x);
-      const snappedY = snapToGrid(y);
+      const snap = getSnapEnabled();
+      const snappedX = snapToGrid(x, snap);
+      const snappedY = snapToGrid(y, snap);
       addElement({
         type: "text",
         x: snappedX, y: snappedY, width: 200, height: 40,
@@ -453,11 +503,12 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
     } else if (dragState.kind === "moving") {
       const dx = cx - dragState.startX;
       const dy = cy - dragState.startY;
+      const snap = getSnapEnabled();
       Object.entries(dragState.origPositions).forEach(([id, orig]) => {
         const el = elements.find((e) => e.id === id);
         if (el && !el.locked) {
-          const newX = snapToGrid(orig.x + dx);
-          const newY = snapToGrid(orig.y + dy);
+          const newX = snapToGrid(orig.x + dx, snap);
+          const newY = snapToGrid(orig.y + dy, snap);
           updateElement(id, { x: newX, y: newY });
         }
       });
@@ -466,11 +517,12 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
       const dx = cx - startX;
       const dy = cy - startY;
       let { x, y, width, height } = origEl;
+      const snap = getSnapEnabled();
 
-      if (handle.includes("e")) width = Math.max(10, snapToGrid(origEl.width + dx));
-      if (handle.includes("s")) height = Math.max(10, snapToGrid(origEl.height + dy));
-      if (handle.includes("w")) { x = snapToGrid(origEl.x + dx); width = Math.max(10, snapToGrid(origEl.width - dx)); }
-      if (handle.includes("n")) { y = snapToGrid(origEl.y + dy); height = Math.max(10, snapToGrid(origEl.height - dy)); }
+      if (handle.includes("e")) width = Math.max(10, snapToGrid(origEl.width + dx, snap));
+      if (handle.includes("s")) height = Math.max(10, snapToGrid(origEl.height + dy, snap));
+      if (handle.includes("w")) { x = snapToGrid(origEl.x + dx, snap); width = Math.max(10, snapToGrid(origEl.width - dx, snap)); }
+      if (handle.includes("n")) { y = snapToGrid(origEl.y + dy, snap); height = Math.max(10, snapToGrid(origEl.height - dy, snap)); }
 
       updateElement(origEl.id, { x, y, width, height });
     }
@@ -479,10 +531,11 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
   const handlePointerUp = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
     if (dragState.kind === "drawing") {
       const { startX, startY, currentX, currentY } = dragState;
-      const x = snapToGrid(Math.min(startX, currentX));
-      const y = snapToGrid(Math.min(startY, currentY));
-      const w = snapToGrid(Math.abs(currentX - startX));
-      const h = snapToGrid(Math.abs(currentY - startY));
+      const snap = getSnapEnabled();
+      const x = snapToGrid(Math.min(startX, currentX), snap);
+      const y = snapToGrid(Math.min(startY, currentY), snap);
+      const w = snapToGrid(Math.abs(currentX - startX), snap);
+      const h = snapToGrid(Math.abs(currentY - startY), snap);
 
       if (w > 5 && h > 5) {
         const typeMap: Record<string, string> = {
