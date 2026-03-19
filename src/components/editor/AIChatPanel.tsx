@@ -220,8 +220,8 @@ const VariationCard = ({
   <div
     className={`rounded-xl border transition-all duration-300 overflow-hidden group ${
       applied
-        ? "border-primary/40 shadow-lg shadow-primary/10"
-        : "border-border/50 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5"
+        ? "border-primary/50 shadow-lg shadow-primary/15"
+        : "border-border hover:border-primary/40 hover:shadow-md hover:shadow-primary/10"
     }`}
   >
     {/* Palette preview */}
