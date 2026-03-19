@@ -546,7 +546,7 @@ export default function AIChatPanel({ onClose }: Props) {
         )}
 
         {/* Mode tabs */}
-        <div className="flex rounded-lg bg-secondary/30 p-0.5">
+        <div className="flex rounded-lg bg-secondary p-0.5">
           {(["chat", "variations"] as const).map((m) => (
             <button
               key={m}
