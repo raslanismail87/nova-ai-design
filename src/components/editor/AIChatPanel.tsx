@@ -263,7 +263,7 @@ const ChangePreview = ({ changes }: { changes: Change[] }) => {
   if (!changes.length) return null;
   const shown = expanded ? changes : changes.slice(0, 3);
   return (
-    <div className="mt-3 rounded-xl overflow-hidden border border-border/50">
+    <div className="mt-3 rounded-xl overflow-hidden border border-border">
       <div
         className="px-3 py-2 flex items-center justify-between cursor-pointer bg-secondary/20 hover:bg-secondary/30 transition-colors"
         onClick={() => setExpanded(!expanded)}
