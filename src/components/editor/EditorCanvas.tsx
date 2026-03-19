@@ -827,7 +827,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
       <div className="absolute bottom-4 right-4 flex items-center gap-0.5 nova-glass rounded-xl p-1 z-20">
         <button
           onClick={() => dispatch({ type: "SET_ZOOM", zoom: state.zoom - 10 })}
-          className="p-1.5 rounded-lg hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-100"
+          className="p-1.5 rounded-lg hover:bg-foreground/[0.06] active:bg-foreground/[0.1] transition-all duration-100"
           title="Zoom out (Ctrl −)"
         >
           <ZoomOut className="w-3.5 h-3.5 text-muted-foreground/70" />
