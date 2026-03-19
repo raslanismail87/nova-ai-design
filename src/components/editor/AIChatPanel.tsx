@@ -506,7 +506,7 @@ export default function AIChatPanel({ onClose }: Props) {
   return (
     <aside className="w-80 flex flex-col shrink-0 border-l border-border bg-card relative overflow-hidden">
       {/* Ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-primary/6 blur-[60px] pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-primary/8 blur-[60px] pointer-events-none" />
 
       {/* ── Header ────────────────────────────────────────────── */}
       <div className="relative shrink-0 px-4 pt-4 pb-3 border-b border-border/50">
