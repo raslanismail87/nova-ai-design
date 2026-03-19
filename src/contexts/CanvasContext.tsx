@@ -38,6 +38,9 @@ export interface CanvasElement {
   blur?: number;
   // Prototype
   linkTo?: string; // page name to navigate to on click
+  protoInteractions?: { id: string; trigger: string; dest: string; animation: string; duration: number }[];
+  protoAnimation?: string;
+  protoAnimDuration?: number;
 }
 
 export interface PageState {

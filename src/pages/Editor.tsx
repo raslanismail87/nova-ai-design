@@ -111,16 +111,20 @@ function CommandPalette({ onClose, commands }: { onClose: () => void; commands: 
 // ─── Present / Preview Mode ───────────────────────────────────────────────────
 
 function PresentMode({
-  elements,
+  pages,
+  initialPageId,
   artboardWidth,
   artboardHeight,
   onClose,
 }: {
-  elements: CanvasElement[];
+  pages: { id: string; name: string; elements: CanvasElement[] }[];
+  initialPageId: string;
   artboardWidth: number;
   artboardHeight: number;
   onClose: () => void;
 }) {
+  const [currentPageId, setCurrentPageId] = useState(initialPageId);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -128,6 +132,14 @@ function PresentMode({
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  const currentPage = pages.find((p) => p.id === currentPageId) ?? pages[0];
+  const elements = currentPage?.elements ?? [];
+
+  const navigateToPage = (pageName: string) => {
+    const target = pages.find((p) => p.name === pageName);
+    if (target) setCurrentPageId(target.id);
+  };
 
   // Calculate scale to fit the artboard in the viewport
   const scale = Math.min(
@@ -145,7 +157,10 @@ function PresentMode({
       >
         <X className="w-5 h-5" />
       </button>
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/40 text-xs">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 text-white/40 text-xs">
+        {pages.length > 1 && (
+          <span className="font-medium text-white/60">{currentPage?.name}</span>
+        )}
         Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white/60 font-mono">Esc</kbd> to exit
       </div>
       <svg
@@ -160,6 +175,8 @@ function PresentMode({
           .map((el) => {
             const isGradient = el.fill.startsWith("linear-gradient");
             const gradId = `present-grad-${el.id}`;
+            const clickInteraction = el.protoInteractions?.find((i) => i.trigger === "On Click");
+            const isClickable = !!clickInteraction;
 
             let gradDef = null;
             let fillVal = el.fill;
@@ -178,9 +195,13 @@ function PresentMode({
               fillVal = `url(#${gradId})`;
             }
 
+            const handleClick = isClickable
+              ? () => navigateToPage(clickInteraction!.dest)
+              : undefined;
+
             if (el.type === "ellipse") {
               return (
-                <g key={el.id}>
+                <g key={el.id} onClick={handleClick} style={isClickable ? { cursor: "pointer" } : undefined}>
                   {gradDef}
                   <ellipse
                     cx={el.x + el.width / 2}
@@ -207,6 +228,8 @@ function PresentMode({
                   fontFamily={el.fontFamily || "Inter, sans-serif"}
                   dominantBaseline="hanging"
                   opacity={el.opacity}
+                  onClick={handleClick}
+                  style={isClickable ? { cursor: "pointer" } : undefined}
                 >
                   {el.textContent || ""}
                 </text>
@@ -223,11 +246,13 @@ function PresentMode({
                   stroke={el.stroke || el.fill}
                   strokeWidth={el.strokeWidth || 2}
                   opacity={el.opacity}
+                  onClick={handleClick}
+                  style={isClickable ? { cursor: "pointer" } : undefined}
                 />
               );
             }
             return (
-              <g key={el.id}>
+              <g key={el.id} onClick={handleClick} style={isClickable ? { cursor: "pointer" } : undefined}>
                 {gradDef}
                 <rect
                   x={el.x}
@@ -432,7 +457,8 @@ const EditorInner = () => {
       {/* Present / Preview Mode */}
       {showPresent && (
         <PresentMode
-          elements={state.elements}
+          pages={state.pages.map((p) => p.id === state.currentPageId ? { ...p, elements: state.elements } : p)}
+          initialPageId={state.currentPageId}
           artboardWidth={state.artboardWidth}
           artboardHeight={state.artboardHeight}
           onClose={() => setShowPresent(false)}
