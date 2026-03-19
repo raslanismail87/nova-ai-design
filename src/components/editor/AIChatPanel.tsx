@@ -504,12 +504,12 @@ export default function AIChatPanel({ onClose }: Props) {
   );
 
   return (
-    <aside className="w-80 flex flex-col shrink-0 border-l border-border bg-card relative overflow-hidden">
+    <aside className="w-80 flex flex-col shrink-0 border-l border-border/50 bg-card/80 relative overflow-hidden">
       {/* Ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-primary/8 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-primary/6 blur-[60px] pointer-events-none" />
 
       {/* ── Header ────────────────────────────────────────────── */}
-      <div className="relative shrink-0 px-4 pt-4 pb-3 border-b border-border/60">
+      <div className="relative shrink-0 px-4 pt-4 pb-3 border-b border-border/50">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
             {/* AI orb */}
@@ -624,7 +624,7 @@ export default function AIChatPanel({ onClose }: Props) {
                           <div className="px-3.5 pb-3 pt-1 flex items-center gap-2">
                             <button
                               onClick={() => handleApply(msg.id)}
-                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl nova-gradient text-[11px] font-semibold text-primary-foreground hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl nova-gradient text-[11px] font-semibold text-primary-foreground hover:opacity-90 transition-all shadow-lg shadow-primary/20 press-scale"
                             >
                               <Check className="w-3.5 h-3.5" />
                               Apply to Canvas
@@ -660,7 +660,7 @@ export default function AIChatPanel({ onClose }: Props) {
           </div>
 
           {/* ── Input area ──────────────────────────────────── */}
-          <div className="shrink-0 px-3 pt-2 pb-3 border-t border-border/60 space-y-2">
+          <div className="shrink-0 px-3 pt-2 pb-3 border-t border-border/50 space-y-2">
             {/* Quick actions */}
             {showQuickActions && (
               <div className="flex gap-1.5 flex-wrap">

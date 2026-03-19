@@ -824,18 +824,18 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
       )}
 
       {/* Zoom controls */}
-      <div className="absolute bottom-4 right-4 flex items-center gap-1 nova-glass rounded-xl p-1 z-20">
+      <div className="absolute bottom-4 right-4 flex items-center gap-0.5 nova-glass rounded-xl p-1 z-20">
         <button
           onClick={() => dispatch({ type: "SET_ZOOM", zoom: state.zoom - 10 })}
-          className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-100"
           title="Zoom out (Ctrl −)"
         >
-          <ZoomOut className="w-3.5 h-3.5 text-muted-foreground" />
+          <ZoomOut className="w-3.5 h-3.5 text-muted-foreground/70" />
         </button>
         <select
           value={zoom}
           onChange={(e) => dispatch({ type: "SET_ZOOM", zoom: Number(e.target.value) })}
-          className="text-[10px] font-mono text-muted-foreground bg-transparent outline-none cursor-pointer min-w-[3.5rem] text-center"
+          className="text-[10px] font-mono text-muted-foreground/70 bg-transparent outline-none cursor-pointer min-w-[3.5rem] text-center"
           title="Zoom level"
         >
           {zoomPresets.map((z) => (
@@ -845,23 +845,23 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         </select>
         <button
           onClick={() => dispatch({ type: "SET_ZOOM", zoom: state.zoom + 10 })}
-          className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-100"
           title="Zoom in (Ctrl +)"
         >
-          <ZoomIn className="w-3.5 h-3.5 text-muted-foreground" />
+          <ZoomIn className="w-3.5 h-3.5 text-muted-foreground/70" />
         </button>
-        <div className="w-px h-4 bg-border mx-0.5" />
+        <div className="w-px h-4 bg-border/50 mx-0.5" />
         <button
           onClick={() => dispatch({ type: "SET_ZOOM", zoom: 100 })}
-          className="p-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-100"
           title="Fit to screen"
         >
-          <Maximize className="w-3.5 h-3.5 text-muted-foreground" />
+          <Maximize className="w-3.5 h-3.5 text-muted-foreground/70" />
         </button>
-        <div className="w-px h-4 bg-border mx-0.5" />
+        <div className="w-px h-4 bg-border/50 mx-0.5" />
         <button
           onClick={() => dispatch({ type: "TOGGLE_GRID" })}
-          className={`p-1.5 rounded-lg transition-colors ${showGrid ? "text-primary bg-primary/10" : "text-muted-foreground hover:bg-secondary/50"}`}
+          className={`p-1.5 rounded-lg transition-all duration-100 ${showGrid ? "text-primary bg-primary/10" : "text-muted-foreground/70 hover:bg-white/[0.06]"}`}
           title="Toggle grid (⌘')"
         >
           <Grid3X3 className="w-3.5 h-3.5" />
@@ -870,21 +870,20 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
 
       {/* Tool hints */}
       {activeTool !== "move" && activeTool !== "hand" && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/90 border border-border text-xs text-muted-foreground z-20 pointer-events-none">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3.5 py-2 rounded-full nova-glass text-xs text-muted-foreground z-20 pointer-events-none animate-fade-in">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
           {activeTool === "text" ? "Click to place text" : `Click and drag to draw ${activeTool}`}
-          <span className="ml-1 px-1.5 py-0.5 rounded bg-secondary text-[10px]">Esc</span>
-          to cancel
+          <kbd className="kbd ml-0.5">Esc</kbd>
         </div>
       )}
 
       {/* Selection info */}
       {selectedElements.length > 0 && (
-        <div className="absolute bottom-4 left-8 flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-card/90 border border-border text-[10px] text-muted-foreground z-20 pointer-events-none">
-          <span className="text-primary font-medium">{selectedElements.length}</span>
+        <div className="absolute bottom-4 left-8 flex items-center gap-2 px-3 py-1.5 rounded-lg nova-glass text-[10px] text-muted-foreground/80 z-20 pointer-events-none">
+          <span className="text-primary font-medium tabular-nums">{selectedElements.length}</span>
           {selectedElements.length === 1 ? "element" : "elements"} selected
           {selectedElements.length === 1 && (
-            <span className="text-muted-foreground/60">
+            <span className="text-muted-foreground/50 font-mono tabular-nums">
               · {Math.round(selectedElements[0].width)} × {Math.round(selectedElements[0].height)}
             </span>
           )}

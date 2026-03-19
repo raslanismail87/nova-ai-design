@@ -45,22 +45,24 @@ function CommandPalette({ onClose, commands }: { onClose: () => void; commands: 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-[18vh] bg-black/60 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="w-[540px] rounded-2xl bg-card border border-border shadow-2xl shadow-black/60 overflow-hidden animate-fade-in"
+        className="w-[520px] rounded-2xl bg-card border border-border/60 shadow-2xl shadow-black/60 overflow-hidden animate-slide-down border-shine noise-overlay"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
-          <span className="text-muted-foreground text-sm font-mono">⌘</span>
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border/50">
+          <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+            <span className="text-primary text-[11px] font-mono font-medium">⌘</span>
+          </div>
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search commands…"
-            className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/50"
             onKeyDown={(e) => {
               if (e.key === "Escape") onClose();
               if (e.key === "Enter" && filtered.length > 0) {
@@ -69,25 +71,28 @@ function CommandPalette({ onClose, commands }: { onClose: () => void; commands: 
               }
             }}
           />
-          <kbd className="px-1.5 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground">Esc</kbd>
+          <kbd className="kbd">Esc</kbd>
         </div>
 
-        <div className="max-h-[380px] overflow-auto py-2">
+        <div className="max-h-[360px] overflow-auto py-1.5">
           {Object.keys(grouped).length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-muted-foreground">No commands found</p>
+            <div className="px-4 py-12 text-center">
+              <p className="text-sm text-muted-foreground/60">No commands found</p>
+              <p className="text-xs text-muted-foreground/30 mt-1">Try a different search</p>
+            </div>
           ) : (
             Object.entries(grouped).map(([group, items]) => (
               <div key={group}>
-                <p className="px-4 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{group}</p>
+                <p className="px-4 py-1.5 text-[10px] font-medium text-muted-foreground/50 uppercase tracking-wider">{group}</p>
                 {items.map((cmd) => (
                   <button
                     key={cmd.id}
                     onClick={() => { cmd.action(); onClose(); }}
-                    className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
+                    className="w-full flex items-center justify-between px-4 py-2 text-[13px] text-foreground/80 hover:bg-primary/8 hover:text-primary transition-colors duration-100 text-left"
                   >
                     <span>{cmd.label}</span>
                     {cmd.shortcut && (
-                      <kbd className="px-1.5 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground font-mono">
+                      <kbd className="kbd">
                         {cmd.shortcut}
                       </kbd>
                     )}
@@ -109,16 +114,16 @@ function AIInvitePill({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="absolute bottom-32 right-6 z-20 flex items-center gap-2 px-3.5 py-2.5 nova-glass rounded-2xl border border-primary/20 shadow-lg shadow-primary/10 hover:border-primary/40 hover:shadow-primary/20 transition-all group animate-fade-in"
+      className="absolute bottom-32 right-6 z-20 flex items-center gap-2.5 px-3.5 py-2.5 nova-glass rounded-2xl border-primary/15 shadow-lg shadow-primary/8 hover:border-primary/30 hover:shadow-primary/15 transition-all duration-250 group animate-fade-in press-scale"
     >
-      <div className="w-5 h-5 rounded-lg nova-gradient flex items-center justify-center shadow-sm shadow-primary/30 group-hover:shadow-primary/40 transition-shadow animate-ai-orb">
-        <Sparkles className="w-2.5 h-2.5 text-primary-foreground" />
+      <div className="w-6 h-6 rounded-[10px] nova-gradient flex items-center justify-center shadow-sm shadow-primary/25 group-hover:shadow-primary/35 transition-shadow animate-ai-orb">
+        <Sparkles className="w-3 h-3 text-primary-foreground" />
       </div>
       <div className="text-left">
         <p className="text-[10px] font-semibold text-foreground leading-none">Ask Nova</p>
-        <p className="text-[9px] text-muted-foreground mt-0.5">AI design partner</p>
+        <p className="text-[9px] text-muted-foreground/70 mt-0.5">AI design partner</p>
       </div>
-      <kbd className="ml-1 px-1 py-0.5 rounded bg-secondary text-[9px] text-muted-foreground font-mono">⌘I</kbd>
+      <kbd className="kbd ml-1">⌘I</kbd>
     </button>
   );
 }
