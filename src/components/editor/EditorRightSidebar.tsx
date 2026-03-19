@@ -342,7 +342,7 @@ export default function EditorRightSidebar({ activeTab, onTabChange }: Props) {
               <ChevronDown className="w-6 h-6 text-muted-foreground rotate-90" />
             </div>
             <p className="text-xs text-muted-foreground">Select an element to edit its properties</p>
-            <div className="text-[10px] text-muted-foreground/60 space-y-1">
+            <div className="text-[10px] text-muted-foreground space-y-1">
               <p>Click an element on the canvas</p>
               <p>or click a layer in the panel</p>
             </div>
