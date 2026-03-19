@@ -793,7 +793,7 @@ export default function AIChatPanel({ onClose }: Props) {
           ))}
 
           {/* Generate custom */}
-          <div className="rounded-xl border border-dashed border-border/50 p-4 text-center space-y-2">
+          <div className="rounded-xl border border-dashed border-border p-4 text-center space-y-2">
             <div className="w-8 h-8 rounded-xl bg-secondary/40 mx-auto flex items-center justify-center">
               <Star className="w-4 h-4 text-muted-foreground" />
             </div>
