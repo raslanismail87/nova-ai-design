@@ -668,7 +668,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
             {showGrid && (
               <defs>
                 <pattern id="grid-small" width="8" height="8" patternUnits="userSpaceOnUse">
-                  <path d="M 8 0 L 0 0 0 8" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+                  <path d="M 8 0 L 0 0 0 8" fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="0.5" />
                 </pattern>
                 <pattern id="grid-large" width="80" height="80" patternUnits="userSpaceOnUse">
                   <rect width="80" height="80" fill="url(#grid-small)" />
