@@ -196,7 +196,7 @@ export default function Dashboard() {
 
         {/* Workspace switcher */}
         <div className="px-2 mb-1.5">
-          <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] hover:bg-white/[0.04] text-sm transition-all duration-150">
+          <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] hover:bg-foreground/[0.04] text-sm transition-all duration-150">
             <div className="w-4 h-4 rounded-[4px] bg-primary/15 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">A</div>
             <span className="flex-1 text-left text-[13px] text-foreground/80">Acme Studio</span>
             <ChevronDown className="w-3 h-3 text-muted-foreground/50" />
