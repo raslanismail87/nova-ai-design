@@ -58,7 +58,7 @@ const LayerRow = ({
         className={`group flex items-center h-7 gap-1.5 text-[12px] transition-colors duration-75 cursor-pointer select-none relative ${
           isSelected
             ? "bg-primary/10 text-foreground"
-            : "text-muted-foreground/75 hover:bg-white/4 hover:text-foreground/85"
+            : "text-muted-foreground/75 hover:bg-foreground/[0.04] hover:text-foreground/85"
         } ${!el.visible ? "opacity-35" : ""}`}
         style={{ paddingLeft: `${depth * 14 + 10}px`, paddingRight: 8 }}
         onClick={(e) => !isRenaming && onSelect(el.id, e.shiftKey || e.metaKey || e.ctrlKey)}
