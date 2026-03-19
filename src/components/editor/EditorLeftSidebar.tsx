@@ -108,7 +108,7 @@ const LayerRow = ({
           <button
             title={el.locked ? "Unlock" : "Lock"}
             onClick={(e) => { e.stopPropagation(); dispatch({ type: "TOGGLE_LOCK", id: el.id }); }}
-            className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/8 transition-colors duration-75"
+            className="w-5 h-5 flex items-center justify-center rounded hover:bg-foreground/[0.08] transition-colors duration-75"
           >
             {el.locked
               ? <Lock className="w-2.5 h-2.5 text-muted-foreground/60" />
