@@ -8,8 +8,10 @@ import AIChatPanel from "@/components/editor/AIChatPanel";
 import AIGenerationModal from "@/components/editor/AIGenerationModal";
 import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
+import { Sparkles, PanelRight } from "lucide-react";
 
-// Command palette item type
+// ─── Command Palette ──────────────────────────────────────────────────────────
+
 interface CommandItem {
   id: string;
   label: string;
@@ -47,16 +49,17 @@ function CommandPalette({ onClose, commands }: { onClose: () => void; commands: 
       onClick={onClose}
     >
       <div
-        className="w-[520px] rounded-2xl bg-card border border-border shadow-2xl shadow-black/60 overflow-hidden animate-fade-in"
+        className="w-[540px] rounded-2xl bg-card border border-border shadow-2xl shadow-black/60 overflow-hidden animate-fade-in"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-          <span className="text-muted-foreground text-sm">⌘</span>
+        {/* Search input */}
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
+          <span className="text-muted-foreground text-sm font-mono">⌘</span>
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type a command..."
+            placeholder="Search commands…"
             className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
             onKeyDown={(e) => {
               if (e.key === "Escape") onClose();
@@ -68,7 +71,8 @@ function CommandPalette({ onClose, commands }: { onClose: () => void; commands: 
           />
           <kbd className="px-1.5 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground">Esc</kbd>
         </div>
-        <div className="max-h-[360px] overflow-auto py-2">
+
+        <div className="max-h-[380px] overflow-auto py-2">
           {Object.keys(grouped).length === 0 ? (
             <p className="px-4 py-8 text-center text-sm text-muted-foreground">No commands found</p>
           ) : (
@@ -98,6 +102,29 @@ function CommandPalette({ onClose, commands }: { onClose: () => void; commands: 
   );
 }
 
+// ─── AI Panel Mode Toggle ─────────────────────────────────────────────────────
+
+/** Floating pill that pulses to invite the user to open AI when nothing is selected */
+function AIInvitePill({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="absolute bottom-32 right-6 z-20 flex items-center gap-2 px-3.5 py-2.5 nova-glass rounded-2xl border border-primary/20 shadow-lg shadow-primary/10 hover:border-primary/40 hover:shadow-primary/20 transition-all group animate-fade-in"
+    >
+      <div className="w-5 h-5 rounded-lg nova-gradient flex items-center justify-center shadow-sm shadow-primary/30 group-hover:shadow-primary/40 transition-shadow animate-ai-orb">
+        <Sparkles className="w-2.5 h-2.5 text-primary-foreground" />
+      </div>
+      <div className="text-left">
+        <p className="text-[10px] font-semibold text-foreground leading-none">Ask Nova</p>
+        <p className="text-[9px] text-muted-foreground mt-0.5">AI design partner</p>
+      </div>
+      <kbd className="ml-1 px-1 py-0.5 rounded bg-secondary text-[9px] text-muted-foreground font-mono">⌘I</kbd>
+    </button>
+  );
+}
+
+// ─── Editor Inner ─────────────────────────────────────────────────────────────
+
 const EditorInner = () => {
   const [showAI, setShowAI] = useState(false);
   const [rightTab, setRightTab] = useState<"design" | "prototype" | "inspect">("design");
@@ -109,7 +136,7 @@ const EditorInner = () => {
   const projectName = searchParams.get("name") || "Fintech Mobile App";
   const pageName = searchParams.get("page") || "Landing Page";
 
-  const { dispatch, deleteSelected, undo, redo, copySelected, paste, duplicateSelected, state } = useCanvas();
+  const { dispatch, deleteSelected, undo, redo, copySelected, paste, duplicateSelected, state, selectedElements } = useCanvas();
 
   const commands: CommandItem[] = [
     { id: "undo", label: "Undo", shortcut: "⌘Z", group: "Edit", action: undo },
@@ -120,6 +147,9 @@ const EditorInner = () => {
     { id: "delete", label: "Delete Selection", shortcut: "⌫", group: "Edit", action: deleteSelected },
     { id: "select-all", label: "Select All", shortcut: "⌘A", group: "Edit", action: () => dispatch({ type: "SELECT", ids: state.elements.map(e => e.id) }) },
     { id: "toggle-ai", label: "Toggle AI Panel", shortcut: "⌘I", group: "View", action: () => setShowAI(p => !p) },
+    { id: "ask-nova-restyle", label: "Ask Nova: Restyle selection", group: "AI", action: () => { setShowAI(true); } },
+    { id: "ask-nova-variations", label: "Ask Nova: Generate variations", group: "AI", action: () => { setShowAI(true); } },
+    { id: "ask-nova-darkmode", label: "Ask Nova: Dark mode variant", group: "AI", action: () => { setShowAI(true); } },
     { id: "toggle-grid", label: "Toggle Grid", shortcut: "⌘'", group: "View", action: () => dispatch({ type: "TOGGLE_GRID" }) },
     { id: "zoom-100", label: "Zoom to 100%", shortcut: "⌘0", group: "View", action: () => dispatch({ type: "SET_ZOOM", zoom: 100 }) },
     { id: "zoom-50", label: "Zoom to 50%", group: "View", action: () => dispatch({ type: "SET_ZOOM", zoom: 50 }) },
@@ -133,6 +163,7 @@ const EditorInner = () => {
     { id: "size-desktop", label: "Resize to Desktop (1280×900)", group: "Canvas", action: () => { dispatch({ type: "SET_ARTBOARD_SIZE", width: 1280, height: 900 }); toast.success("Canvas resized to 1280×900"); } },
     { id: "size-mobile", label: "Resize to Mobile (390×844)", group: "Canvas", action: () => { dispatch({ type: "SET_ARTBOARD_SIZE", width: 390, height: 844 }); toast.success("Canvas resized to 390×844"); } },
     { id: "size-tablet", label: "Resize to Tablet (768×1024)", group: "Canvas", action: () => { dispatch({ type: "SET_ARTBOARD_SIZE", width: 768, height: 1024 }); toast.success("Canvas resized to 768×1024"); } },
+    { id: "gen-modal", label: "Generate new design with AI", group: "AI", action: () => setShowGenModal(true) },
     { id: "dashboard", label: "Back to Dashboard", group: "Navigate", action: () => navigate("/dashboard") },
   ];
 
@@ -142,7 +173,6 @@ const EditorInner = () => {
       const tag = (e.target as HTMLElement).tagName.toLowerCase();
       const isInput = tag === "input" || tag === "textarea" || tag === "select";
 
-      // Tool shortcuts
       if (!isInput && !e.metaKey && !e.ctrlKey) {
         const toolMap: Record<string, string> = {
           v: "move", f: "frame", r: "rectangle", o: "ellipse",
@@ -152,12 +182,10 @@ const EditorInner = () => {
           dispatch({ type: "SET_TOOL", tool: toolMap[e.key.toLowerCase()] });
           return;
         }
-
         if ((e.key === "Delete" || e.key === "Backspace") && !isInput) {
           deleteSelected();
           return;
         }
-
         if (e.key === "Escape") {
           dispatch({ type: "SET_TOOL", tool: "move" });
           dispatch({ type: "SELECT", ids: [] });
@@ -235,23 +263,41 @@ const EditorInner = () => {
         projectName={projectName}
         pageName={pageName}
       />
-      <div className="flex-1 flex overflow-hidden">
+
+      <div className="flex-1 flex overflow-hidden relative">
         <EditorLeftSidebar />
+
+        {/* Canvas fills remaining space */}
         <EditorCanvas onOpenAI={() => setShowAI(true)} />
-        {showAI ? (
-          <AIChatPanel onClose={() => setShowAI(false)} />
-        ) : (
-          <EditorRightSidebar
-            activeTab={rightTab}
-            onTabChange={setRightTab}
-          />
+
+        {/* Right panel: AI chat OR properties — seamless transition */}
+        <div
+          className={`shrink-0 flex transition-all duration-300 ease-out ${showAI ? "w-80" : "w-72"}`}
+        >
+          {showAI ? (
+            <AIChatPanel onClose={() => setShowAI(false)} />
+          ) : (
+            <EditorRightSidebar
+              activeTab={rightTab}
+              onTabChange={setRightTab}
+            />
+          )}
+        </div>
+
+        {/* AI invite pill — shown when AI panel is closed */}
+        {!showAI && (
+          <AIInvitePill onClick={() => setShowAI(true)} />
         )}
       </div>
+
+      {/* AI Generation Modal */}
       <AIGenerationModal
         open={showGenModal}
         onClose={() => setShowGenModal(false)}
         onGenerate={() => setShowGenModal(false)}
       />
+
+      {/* Command Palette */}
       {showCommandPalette && (
         <CommandPalette
           commands={commands}
@@ -261,6 +307,8 @@ const EditorInner = () => {
     </div>
   );
 };
+
+// ─── Page Wrapper ─────────────────────────────────────────────────────────────
 
 const Editor = () => {
   const [searchParams] = useSearchParams();
