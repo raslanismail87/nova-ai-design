@@ -588,10 +588,10 @@ export default function AIChatPanel({ onClose }: Props) {
                       <div
                         className={`rounded-2xl rounded-tl-sm border transition-all duration-300 overflow-hidden ${
                           msg.applied
-                            ? "border-emerald-500/20 bg-emerald-500/5"
+                            ? "border-emerald-500/30 bg-emerald-50"
                             : msg.rejected
-                            ? "border-border/30 bg-secondary/10 opacity-60"
-                            : "border-border/40 bg-secondary/20"
+                            ? "border-border bg-muted opacity-60"
+                            : "border-border bg-secondary"
                         }`}
                       >
                         <div className="px-3.5 pt-3 pb-2 space-y-1">
