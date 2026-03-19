@@ -280,7 +280,7 @@ const ChangePreview = ({ changes }: { changes: Change[] }) => {
         <div className="divide-y divide-border">
           {shown.map((c, i) => (
             <div key={i} className="px-3 py-2 flex items-center gap-2">
-              <span className="text-[9px] text-muted-foreground/70 font-mono w-16 shrink-0 truncate">{c.elementName}</span>
+              <span className="text-[9px] text-muted-foreground font-mono w-16 shrink-0 truncate">{c.elementName}</span>
               <span className="text-[9px] text-primary/70 font-mono flex-1 truncate">{c.property}</span>
               <div className="flex items-center gap-1.5">
                 <div
