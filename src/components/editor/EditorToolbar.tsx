@@ -109,7 +109,7 @@ export default function EditorToolbar({
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span className="flex-1 text-left">{preset.label}</span>
-                  <span className="text-[10px] font-mono text-muted-foreground/50">{preset.width}×{preset.height}</span>
+                  <span className="text-[10px] font-mono text-muted-foreground">{preset.width}×{preset.height}</span>
                 </button>
               );
             })}
