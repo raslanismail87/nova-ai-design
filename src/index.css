@@ -108,7 +108,7 @@
 
   /* Precise text selection */
   ::selection {
-    background: hsl(263 70% 58% / 0.22);
+    background: hsl(263 70% 58% / 0.15);
     color: inherit;
   }
 
