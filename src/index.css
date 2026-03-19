@@ -34,6 +34,16 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 263 70% 58%;
+
+    /* Nova Studio surface tokens (light) */
+    --nova-surface-1: 0 0% 98%;
+    --nova-surface-2: 0 0% 95%;
+    --nova-surface-3: 0 0% 92%;
+    --nova-glow: 263 70% 58%;
+    --nova-cyan: 190 90% 50%;
+    --nova-violet: 263 70% 58%;
+    --nova-glass: 0 0% 100% / 0.85;
+    --nova-border: 0 0% 0% / 0.08;
   }
 
   .dark {
