@@ -123,7 +123,7 @@ export default function EditorToolbar({
           onClick={undo}
           disabled={!canUndo}
           title="Undo (⌘Z)"
-          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${canUndo ? "text-muted-foreground/60 hover:text-foreground/80 hover:bg-white/[0.05] active:bg-white/[0.08]" : "text-muted-foreground/20 cursor-not-allowed"}`}
+          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-all duration-100 ${canUndo ? "text-muted-foreground/60 hover:text-foreground/80 hover:bg-foreground/[0.05] active:bg-foreground/[0.08]" : "text-muted-foreground/20 cursor-not-allowed"}`}
         >
           <Undo2 className="w-3.5 h-3.5" />
         </button>
