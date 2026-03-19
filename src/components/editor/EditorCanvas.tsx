@@ -853,7 +853,7 @@ const EditorCanvas = ({ onOpenAI }: Props) => {
         <div className="w-px h-4 bg-border/50 mx-0.5" />
         <button
           onClick={() => dispatch({ type: "SET_ZOOM", zoom: 100 })}
-          className="p-1.5 rounded-lg hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-100"
+          className="p-1.5 rounded-lg hover:bg-foreground/[0.06] active:bg-foreground/[0.1] transition-all duration-100"
           title="Fit to screen"
         >
           <Maximize className="w-3.5 h-3.5 text-muted-foreground/70" />
