@@ -541,7 +541,7 @@ export default function AIChatPanel({ onClose }: Props) {
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             <span className="text-[10px] text-muted-foreground">Targeting</span>
             <span className="text-[10px] text-primary font-medium truncate max-w-[120px]">{contextName}</span>
-            <div className="ml-auto text-[9px] text-muted-foreground/60 font-mono uppercase">{selectedEl?.type}</div>
+            <div className="ml-auto text-[9px] text-muted-foreground font-mono uppercase">{selectedEl?.type}</div>
           </div>
         )}
 
