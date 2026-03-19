@@ -648,7 +648,7 @@ export default function AIChatPanel({ onClose }: Props) {
 
                         {/* Timestamp */}
                         <div className="px-3.5 pb-2">
-                          <p className="text-[9px] text-muted-foreground/40">{msg.timestamp}</p>
+                          <p className="text-[9px] text-muted-foreground">{msg.timestamp}</p>
                         </div>
                       </div>
                     )}
