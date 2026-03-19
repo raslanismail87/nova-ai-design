@@ -58,7 +58,7 @@ export default function EditorToolbar({
   };
 
   return (
-    <div className="h-12 border-b border-border bg-card/80 backdrop-blur-sm flex items-center px-3 gap-2 shrink-0 z-30 relative">
+    <div className="h-11 border-b border-border/60 bg-card/95 backdrop-blur-sm flex items-center px-3 gap-2 shrink-0 z-30 relative">
       {/* Left: Logo + project name */}
       <button
         onClick={() => navigate("/dashboard")}
@@ -118,44 +118,40 @@ export default function EditorToolbar({
       </div>
 
       {/* Undo/Redo */}
-      <div className="flex items-center gap-0.5 ml-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-8 w-8 ${!canUndo ? "opacity-40 cursor-not-allowed" : ""}`}
+      <div className="flex items-center gap-px ml-1">
+        <button
           onClick={undo}
           disabled={!canUndo}
           title="Undo (⌘Z)"
+          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-colors duration-75 ${canUndo ? "text-muted-foreground/70 hover:text-foreground/80 hover:bg-white/5" : "text-muted-foreground/25 cursor-not-allowed"}`}
         >
           <Undo2 className="w-3.5 h-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-8 w-8 ${!canRedo ? "opacity-40 cursor-not-allowed" : ""}`}
+        </button>
+        <button
           onClick={redo}
           disabled={!canRedo}
           title="Redo (⌘⇧Z)"
+          className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-colors duration-75 ${canRedo ? "text-muted-foreground/70 hover:text-foreground/80 hover:bg-white/5" : "text-muted-foreground/25 cursor-not-allowed"}`}
         >
           <Redo2 className="w-3.5 h-3.5" />
-        </Button>
+        </button>
       </div>
 
       {/* Separator */}
-      <div className="w-px h-5 bg-border mx-1" />
+      <div className="w-px h-4 bg-border/60 mx-1" />
 
       {/* Tools */}
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-px">
         {tools.map((tool) => {
           const Icon = toolIcons[tool.id];
           return (
             <button
               key={tool.id}
               onClick={() => dispatch({ type: "SET_TOOL", tool: tool.id })}
-              className={`h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${
+              className={`h-7 w-7 rounded-[6px] flex items-center justify-center transition-colors duration-75 ${
                 activeTool === tool.id
-                  ? "bg-primary/20 text-primary shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  ? "bg-primary/15 text-primary"
+                  : "text-muted-foreground/60 hover:text-foreground/80 hover:bg-white/5"
               }`}
               title={`${tool.id.charAt(0).toUpperCase() + tool.id.slice(1)} (${tool.shortcut})`}
             >

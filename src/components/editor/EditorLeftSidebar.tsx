@@ -19,12 +19,12 @@ const typeIcons: Record<string, any> = {
 };
 
 const typeColors: Record<string, string> = {
-  frame: "text-violet-400",
-  text: "text-blue-400",
-  image: "text-amber-400",
-  rectangle: "text-muted-foreground",
-  ellipse: "text-cyan-400",
-  line: "text-muted-foreground",
+  frame:     "text-violet-400/70",
+  text:      "text-blue-400/70",
+  image:     "text-amber-400/70",
+  rectangle: "text-muted-foreground/60",
+  ellipse:   "text-cyan-400/70",
+  line:      "text-muted-foreground/50",
 };
 
 const LayerRow = ({
@@ -55,20 +55,25 @@ const LayerRow = ({
   return (
     <div>
       <div
-        className={`group flex items-center gap-1 px-2 py-[5px] text-xs transition-colors cursor-pointer select-none ${
+        className={`group flex items-center h-7 gap-1.5 text-[12px] transition-colors duration-75 cursor-pointer select-none relative ${
           isSelected
-            ? "bg-primary/15 text-primary"
-            : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
-        } ${!el.visible ? "opacity-40" : ""}`}
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+            ? "bg-primary/10 text-foreground"
+            : "text-muted-foreground/75 hover:bg-white/4 hover:text-foreground/85"
+        } ${!el.visible ? "opacity-35" : ""}`}
+        style={{ paddingLeft: `${depth * 14 + 10}px`, paddingRight: 8 }}
         onClick={(e) => !isRenaming && onSelect(el.id, e.shiftKey || e.metaKey || e.ctrlKey)}
         onDoubleClick={() => { setIsRenaming(true); setRenameVal(el.name); }}
       >
-        {/* Drag handle (visual only) */}
-        <GripVertical className="w-3 h-3 shrink-0 opacity-0 group-hover:opacity-30 transition-opacity" />
+        {/* Selected accent bar */}
+        {isSelected && (
+          <div className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-primary/70" />
+        )}
 
-        {/* Icon */}
-        <Icon className={`w-3 h-3 shrink-0 ${isSelected ? "text-primary" : iconColor}`} />
+        {/* Drag handle */}
+        <GripVertical className="w-2.5 h-2.5 shrink-0 opacity-0 group-hover:opacity-25 transition-opacity duration-75" />
+
+        {/* Element icon */}
+        <Icon className={`w-3 h-3 shrink-0 ${isSelected ? "text-primary/80" : iconColor}`} />
 
         {/* Name / rename input */}
         {isRenaming ? (
@@ -80,36 +85,37 @@ const LayerRow = ({
               if (e.key === "Enter") finishRename();
               if (e.key === "Escape") setIsRenaming(false);
             }}
-            className="flex-1 bg-secondary/50 rounded px-1 text-xs outline-none border border-primary/40"
+            className="flex-1 h-5 bg-secondary/60 rounded px-1.5 text-[11px] font-medium outline-none border border-primary/35"
             autoFocus
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <span className="truncate flex-1 text-left leading-none">{el.name}</span>
+          <span className="truncate flex-1 leading-none">{el.name}</span>
         )}
 
-        {/* Actions on hover */}
-        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity ml-1">
+        {/* Hover actions */}
+        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-px transition-opacity duration-75 shrink-0">
           <button
             title={el.visible ? "Hide" : "Show"}
             onClick={(e) => { e.stopPropagation(); dispatch({ type: "TOGGLE_VISIBLE", id: el.id }); }}
-            className="p-0.5 rounded hover:bg-secondary/50"
+            className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/8 transition-colors duration-75"
           >
-            {el.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+            {el.visible
+              ? <Eye className="w-2.5 h-2.5 text-muted-foreground/60" />
+              : <EyeOff className="w-2.5 h-2.5 text-muted-foreground/60" />
+            }
           </button>
           <button
             title={el.locked ? "Unlock" : "Lock"}
             onClick={(e) => { e.stopPropagation(); dispatch({ type: "TOGGLE_LOCK", id: el.id }); }}
-            className="p-0.5 rounded hover:bg-secondary/50"
+            className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/8 transition-colors duration-75"
           >
-            {el.locked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+            {el.locked
+              ? <Lock className="w-2.5 h-2.5 text-muted-foreground/60" />
+              : <Unlock className="w-2.5 h-2.5 text-muted-foreground/60" />
+            }
           </button>
         </div>
-
-        {/* Type badge */}
-        <span className="opacity-0 group-hover:opacity-60 text-[9px] text-muted-foreground ml-1 font-mono">
-          {el.type}
-        </span>
       </div>
     </div>
   );
@@ -238,17 +244,17 @@ export default function EditorLeftSidebar() {
   const currentPage = pages.find((p) => p.id === currentPageId);
 
   return (
-    <aside className="w-64 border-r border-border bg-card flex flex-col shrink-0">
+    <aside className="w-60 border-r border-border/60 bg-card flex flex-col shrink-0 select-none">
       {/* Tabs */}
-      <div className="flex border-b border-border">
+      <div className="flex border-b border-border/60 shrink-0">
         {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2.5 text-xs font-medium transition-colors ${
+            className={`flex-1 py-2 text-[12px] font-medium transition-colors duration-100 ${
               activeTab === tab
-                ? "text-foreground border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground"
+                ? "text-foreground border-b border-primary"
+                : "text-muted-foreground/60 hover:text-foreground/80"
             }`}
           >
             {tab}
@@ -260,20 +266,20 @@ export default function EditorLeftSidebar() {
       {activeTab === "Layers" && (
         <>
           {/* Search + add */}
-          <div className="flex items-center gap-1 px-2 py-2 border-b border-border">
+          <div className="flex items-center gap-1.5 px-2.5 py-2 border-b border-border/50 shrink-0">
             <div className="flex-1 relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground/40 pointer-events-none" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search layers..."
-                className="w-full pl-6 pr-2 h-6 rounded bg-secondary/30 border border-border text-[11px] text-foreground outline-none focus:border-primary/50 placeholder:text-muted-foreground/50"
+                placeholder="Search layers…"
+                className="w-full pl-6 pr-2 h-6 rounded-[5px] bg-secondary/20 border border-border/50 text-[11px] text-foreground/80 placeholder:text-muted-foreground/35 focus:border-primary/35 focus:bg-secondary/30 transition-all duration-100"
               />
             </div>
             <button
               title="Add rectangle"
               onClick={() => handleAddQuick("rectangle")}
-              className="p-1 rounded hover:bg-secondary/50 text-muted-foreground hover:text-foreground"
+              className="w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-white/6 text-muted-foreground/60 hover:text-foreground/80 transition-colors duration-75"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
@@ -300,58 +306,45 @@ export default function EditorLeftSidebar() {
           </div>
 
           {/* Quick add */}
-          <div className="border-t border-border p-2">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5 px-1">Quick Add</p>
+          <div className="border-t border-border/50 p-2.5 shrink-0">
+            <p className="text-[9px] font-medium text-muted-foreground/40 uppercase tracking-widest mb-2 px-0.5">Add element</p>
             <div className="grid grid-cols-4 gap-1">
               {[
                 { type: "rectangle", icon: Square, label: "Rect" },
-                { type: "ellipse", icon: Circle, label: "Circle" },
-                { type: "text", icon: Type, label: "Text" },
-                { type: "frame", icon: Frame, label: "Frame" },
+                { type: "ellipse",   icon: Circle, label: "Ellipse" },
+                { type: "text",      icon: Type,   label: "Text" },
+                { type: "frame",     icon: Frame,  label: "Frame" },
               ].map(({ type, icon: Icon, label }) => (
                 <button
                   key={type}
                   onClick={() => handleAddQuick(type)}
-                  className="flex flex-col items-center gap-1 py-2 rounded-lg bg-secondary/20 hover:bg-primary/10 hover:text-primary text-muted-foreground transition-colors"
+                  className="flex flex-col items-center gap-1 py-2 rounded-[7px] bg-secondary/15 hover:bg-primary/8 hover:text-primary text-muted-foreground/60 hover:text-primary transition-colors duration-100"
                   title={`Add ${label}`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span className="text-[9px]">{label}</span>
+                  <Icon className="w-3 h-3" />
+                  <span className="text-[9px] font-medium">{label}</span>
                 </button>
               ))}
             </div>
 
-            {/* Reorder selected */}
+            {/* Reorder */}
             {selectedIds.length === 1 && (
               <div className="mt-2 flex gap-1">
-                <button
-                  onClick={() => dispatch({ type: "REORDER", id: selectedIds[0], direction: "top" })}
-                  className="flex-1 py-1 text-[9px] rounded bg-secondary/20 text-muted-foreground hover:text-foreground transition-colors"
-                  title="Bring to front"
-                >
-                  ↑ Front
-                </button>
-                <button
-                  onClick={() => dispatch({ type: "REORDER", id: selectedIds[0], direction: "up" })}
-                  className="flex-1 py-1 text-[9px] rounded bg-secondary/20 text-muted-foreground hover:text-foreground transition-colors"
-                  title="Move up"
-                >
-                  ↑
-                </button>
-                <button
-                  onClick={() => dispatch({ type: "REORDER", id: selectedIds[0], direction: "down" })}
-                  className="flex-1 py-1 text-[9px] rounded bg-secondary/20 text-muted-foreground hover:text-foreground transition-colors"
-                  title="Move down"
-                >
-                  ↓
-                </button>
-                <button
-                  onClick={() => dispatch({ type: "REORDER", id: selectedIds[0], direction: "bottom" })}
-                  className="flex-1 py-1 text-[9px] rounded bg-secondary/20 text-muted-foreground hover:text-foreground transition-colors"
-                  title="Send to back"
-                >
-                  ↓ Back
-                </button>
+                {[
+                  { dir: "top",    label: "↑↑" },
+                  { dir: "up",     label: "↑"  },
+                  { dir: "down",   label: "↓"  },
+                  { dir: "bottom", label: "↓↓" },
+                ].map(({ dir, label }) => (
+                  <button
+                    key={dir}
+                    onClick={() => dispatch({ type: "REORDER", id: selectedIds[0], direction: dir as any })}
+                    className="flex-1 py-1 text-[10px] font-mono rounded-[5px] bg-secondary/15 text-muted-foreground/50 hover:text-foreground/80 hover:bg-secondary/30 transition-colors duration-75"
+                    title={dir === "top" ? "Bring to front" : dir === "bottom" ? "Send to back" : dir === "up" ? "Move up" : "Move down"}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             )}
           </div>
