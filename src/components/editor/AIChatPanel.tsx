@@ -265,7 +265,7 @@ const ChangePreview = ({ changes }: { changes: Change[] }) => {
   return (
     <div className="mt-3 rounded-xl overflow-hidden border border-border">
       <div
-        className="px-3 py-2 flex items-center justify-between cursor-pointer bg-secondary/20 hover:bg-secondary/30 transition-colors"
+        className="px-3 py-2 flex items-center justify-between cursor-pointer bg-secondary hover:bg-muted transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-1.5">
